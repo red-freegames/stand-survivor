@@ -512,7 +512,7 @@ a.bigbtn.more{background:linear-gradient(135deg,#1a4a8a,#3d6bff);font-size:clamp
   <div class="row2" style="margin-top:14px"><button class="bigbtn sub" id="trainBtn">トレーニング</button><button class="bigbtn sub" id="zukanBtn">図鑑・実績</button><button class="bigbtn sub" id="setBtn">設定</button></div>
   <div class="row2"><a class="bigbtn sub more" href="https://red-freegames.github.io/">🎮 他のゲームを見る</a></div>
   <div class="best" id="best"></div>
-  <div class="how">PC：WASD / 矢印キーで移動　スマホ：画面をドラッグ<br>攻撃はすべてスタンドが自律して行う ─ 最大6体・全28種<br>ステージに潜むスタンド使いを探し出せ（MAPで位置を確認）<br>マネーで主人公の解放・トレーニングができる<br>Lv MAXのスタンドは、5:00以降に「矢尻」に触れると覚醒する<br>1ステージ10分。10:00まで生き延びればクリア<br>ステージ5以降は、9:00に現れるラスボスも倒す必要がある</div>
+  <div class="how">PC：WASD / 矢印キーで移動　スマホ：画面をドラッグ<br>攻撃はすべてスタンドが自律して行う ─ 最大6体・全28種<br>ステージに潜むスタンド使いを探し出せ（MAPで位置を確認）<br>マネーで主人公の解放・トレーニングができる<br>Lv MAXのスタンドは「矢尻」に触れると覚醒する<br>1ステージ10分。10:00まで生き延びればクリア<br>ステージ5以降は、9:00に現れるラスボスも倒す必要がある</div>
   <div class="marq"><div id="marq"></div></div>
 </div>
 
@@ -630,8 +630,6 @@ function sfx(n){if(!AC||muted)return;if(AC.state==='suspended')AC.resume();const
 /* ================= state ================= */
 const G={state:'title'};let P={};
 const MAXLV=8;
-// 覚醒は 5:00 以降に触れた矢尻からのみ（キャラや育成の差があっても、全覚醒が 7〜8 分目に揃うように）
-const AW_T=300;
 const TYPE_NAME=['近距離型','遠距離・範囲型','特殊型'],TYPE_COL=['#ff5c8a','#3dd6ff','#ffd23f'];
 const xpNeed=l=>Math.floor((5+l*4+Math.pow(l,1.6))*1.2);
 let BEST=0;try{BEST=+localStorage.getItem('standSurvBest')||0}catch(e){}
@@ -1156,7 +1154,7 @@ const titleName=()=>{const a=ACH.find(x=>x.id===SAVE.title);return a?a.t:''};
 
 function recalc(){const h=G.st.find(s=>s.def.id==='heaven'),l=h?h.lv:0,md=G.md,b=G.bonus,u=puLv,{e,act}=synEffects();
   G.dmgMul=DIFF.pow*(md.dmg||1)*(1+.06*b.pow)*(1+.05*u('pow'))*(1+e.dmg);
-  G.xpMul=(md.xp||1)*(1+.06*b.xp)*(1+.04*u('xp'))*(1+e.xp);G.goldMul=1.25*(1+.08*b.gold)*(1+.1*u('gold'))*(G.hard?HARD.gold:1);
+  G.xpMul=(md.xp||1)*(1+.06*b.xp)*(1+.04*u('xp'))*(1+e.xp);G.goldMul=1.1*(1+.08*b.gold)*(1+.1*u('gold'))*(G.hard?HARD.gold:1);
   G.dmgTaken=Math.pow(.96,b.arm)*Math.pow(.96,u('arm'))*(1-e.arm);G.weakMul=aw('disc')?1.7:1.3;
   G.cdMul=(1-.035*l)*(md.cd||1)*Math.pow(.97,b.cd)*Math.pow(.97,u('cd'))*(1-e.cd)*(aw('heaven')?.85:1);
   G.spdMul=(1+.05*l)*(md.spd||1)*(1+.04*b.spd)*(1+.05*u('spd'))*(1+e.spd)*(aw('silver')?1.12:1)*(aw('fool')?1.1:1);
@@ -1215,7 +1213,7 @@ function drawE(g,k,r,body,rim,eye){g.lineJoin='round';g.lineCap='round';g.lineWi
 function mkESpr(k,r,body,rim,eye){const s=Math.ceil(r*2.8+16),cv0=()=>{const c=document.createElement('canvas');c.width=c.height=s;return c},mk=f=>{const b=cv0(),g=b.getContext('2d');g.translate(s/2,s/2);drawE(g,k,r,body,rim,eye);
   if(f){g.globalCompositeOperation='source-atop';g.fillStyle='rgba(255,255,255,.85)';g.fillRect(-s,-s,s*2,s*2)}
   const sil=cv0(),sg=sil.getContext('2d');sg.drawImage(b,0,0);sg.globalCompositeOperation='source-in';sg.fillStyle='#ff2038';sg.fillRect(0,0,s,s);
-  const c=cv0(),o=c.getContext('2d');for(let i=0;i<8;i++){const a=i/8*TAU;o.drawImage(sil,Math.round(Math.cos(a)*2.5),Math.round(Math.sin(a)*2.5))}o.drawImage(b,0,0);return c};return{n:mk(0),f:mk(1),s}}
+  const c=cv0(),o=c.getContext('2d');for(let i=0;i<8;i++){const a=i/8*TAU;o.drawImage(sil,Math.cos(a)*1.5,Math.sin(a)*1.5)}o.drawImage(b,0,0);return c};return{n:mk(0),f:mk(1),s}}
 const SPR={ghoul:mkESpr('ghoul',13,'#5a3a6e','#1a0a20','#ff3355'),bat:mkESpr('bat',10,'#3a2a4a','#0a0010','#ffcc00'),brute:mkESpr('brute',21,'#7a6a5a','#1a120a','#ff8a00'),
   shooter:mkESpr('shooter',14,'#2a2a5a','#05051a','#3dffe0'),elite:mkESpr('elite',25,'#8a1a3a','#ffd23f','#ffffff')};
 BOSSES.forEach((b,i)=>SPR['boss'+i]=mkESpr('boss',44,b.c,'#000',b.e));
@@ -1564,7 +1562,7 @@ function showStandDetail(s){const d=s.def,A=AWAKE[d.id];let pips='';for(let k=1;
       <div class="dlv">${s.aw?'<b class="awb">覚醒</b>':s.lv===MAXLV?'<b>LEVEL MAX</b>':`Lv <b>${s.lv}</b> / ${MAXLV}`}</div><div class="pips">${pips}</div></div></div>
     <div class="dsec"><h4>現在の性能</h4><p>${d.desc(s.lv)}</p></div>
     ${s.lv<MAXLV?`<div class="dsec nx"><h4>次のレベル（Lv${s.lv+1}）</h4><p>${d.desc(s.lv+1)}</p></div>`:''}
-    <div class="dsec awk ${s.aw?'on':''}"><h4>覚醒能力 ─ ${A.name}</h4><p>${A.desc}</p><div class="ast">${s.aw?'★ 覚醒済み ─ 発動中':s.lv===MAXLV?'5:00以降、矢尻に触れると覚醒する！':'Lv MAX の状態で矢尻に触れると覚醒'}</div></div>
+    <div class="dsec awk ${s.aw?'on':''}"><h4>覚醒能力 ─ ${A.name}</h4><p>${A.desc}</p><div class="ast">${s.aw?'★ 覚醒済み ─ 発動中':s.lv===MAXLV?'矢尻に触れると覚醒する！':'Lv MAX の状態で矢尻に触れると覚醒'}</div></div>
     <button class="bigbtn sub" id="pback">◀ 一覧へ戻る</button>`;
   $('pmain').classList.add('hidden');$('pdet').classList.remove('hidden');$('pause').scrollTop=0;$('pback').onclick=renderPause;sfx('tick')}
 
@@ -1575,7 +1573,11 @@ function openChoice(start){
   const statMode=!pool.length;if(statMode)for(const st of STATS)pool.push({stat:st});
   // 設定ONなら、全スタンドMAX後のステータス強化は自動で選ぶ
   if(statMode&&SET.auto&&!start){autoStat();return}
-  const ch=shuffle(pool).slice(0,3);G.choices=ch;G.choiceStart=start;G.focus=-1;
+  // 枠が余っていても新スタンドに偏らないよう、所持スタンドの強化を最低1枠、残りも半々で混ぜる
+  let ch;if(statMode)ch=shuffle(pool).slice(0,3);
+  else{const ups=shuffle(pool.filter(c=>c.own)),news=shuffle(pool.filter(c=>!c.own));ch=[];
+    while(ch.length<3&&(ups.length||news.length))ch.push((ups.length&&(!news.length||!ch.some(c=>c.own)||R()<.5)?ups:news).shift());ch=shuffle(ch)}
+  G.choices=ch;G.choiceStart=start;G.focus=-1;
   const hasMax=ch.some(c=>c.next===MAXLV);
   $('lvTitle').textContent=start?'STAND AWAKEN':'LEVEL UP!!';
   $('lvSub').textContent=start?'あなたに宿るスタンドを選べ':statMode?`Lv ${G.lv}　─　全スタンドMAX！基本ステータスを強化`:`Lv ${G.lv}　─　スタンド枠 ${G.st.length} / 6`;
@@ -1614,7 +1616,7 @@ function endCutin(){if(G.state!=='cutin')return;$('cutin').className='';if(G.cut
 let CH=null;
 function rollChest(){const r=R(),n=r<.8?1:r<.96?3:5,inc=new Map(),awk=new Set(),res=[],lvOf=s=>s.lv+(inc.get(s)||0);
   // 覚醒は「矢尻に触れた時点で Lv MAX」のスタンドだけ（同じ矢尻でMAXになった分は対象外）
-  const wasMax=new Set(G.t>=AW_T?G.st.filter(s=>s.lv>=MAXLV&&!s.aw):[]);
+  const wasMax=new Set(G.st.filter(s=>s.lv>=MAXLV&&!s.aw));
   for(let k=0;k<n;k++){const el=G.st.filter(s=>lvOf(s)<MAXLV||(wasMax.has(s)&&!awk.has(s)));
     if(el.length){const s=el[(R()*el.length)|0],l=lvOf(s);if(l<MAXLV){inc.set(s,(inc.get(s)||0)+1);res.push({s,from:l,to:l+1})}else{awk.add(s);res.push({s,aw:true})}}
     else if(G.st.length<6&&DEFS.some(d=>standUnlocked(d.id)&&!G.st.some(x=>x.def===d))){const un=DEFS.filter(d=>standUnlocked(d.id)&&!G.st.some(x=>x.def===d)),s=mkStand(un[(R()*un.length)|0]);s.lv=0;G.st.push(s);inc.set(s,1);res.push({s,from:0,to:1})}
@@ -1802,7 +1804,7 @@ function startBgm(){if(!AC||bgmGain)return;bgmGain=AC.createGain();bgmGain.conne
 const SPEED=1.3; // ゲーム全体の基本進行速度（×設定のゲーム速度）
 function update(rdt){
   const dt=rdt*SPEED;
-  const t0=G.t;G.t+=rdt;if(t0<AW_T&&G.t>=AW_T)bigText('5:00 ─ 矢尻での覚醒が解禁!!','gold');G.anim+=G.timeStop>0?0:dt;
+  G.t+=rdt;G.anim+=G.timeStop>0?0:dt;
   if(G.t>=STAGE_TIME){G.t=STAGE_TIME;win();return}
   // 実績用のカウント（1秒ごとに判定）
   if((G.achT-=rdt)<=0){G.achT=1;cntMax('bestKills',G.kills);cntMax('bestLv',G.lv);cntMax('aw6',G.st.filter(s=>s.aw).length);checkAch()}
