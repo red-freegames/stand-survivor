@@ -253,7 +253,7 @@ button{font-family:inherit;cursor:pointer;border:0;color:#fff}
 .rtab{width:min(560px,92vw);margin:12px auto 0;display:flex;flex-direction:column;gap:5px;text-align:left}
 .rth{font-size:12px;color:#cbb8ee}
 .rrw{display:flex;align-items:center;gap:8px;padding:3px 10px 3px 4px;background:rgba(20,10,36,.92);border-left:5px solid var(--c);box-shadow:3px 3px 0 #000;line-height:1.2}
-.rrw img{height:40px}.rn{flex:1;min-width:0}.rn b{font-family:Anton;font-weight:400;font-size:15px;color:var(--c);margin:0}.rn small{font-size:10px;color:#bba8e0;margin-left:6px}
+.rrw img{height:40px}.rn{flex:1;min-width:0}.rn b{font-family:Anton;font-weight:400;font-size:15px;color:var(--c);margin:0}.rn small{display:inline-block;white-space:nowrap;font-size:10px;color:#bba8e0;margin-left:6px}
 .rbar{height:6px;background:#2a1d3a;margin-top:3px}.rbar i{display:block;height:100%;background:var(--c);box-shadow:0 0 6px var(--c)}
 .rv{text-align:right;flex:none;min-width:118px;white-space:nowrap}.rv b{font-family:Anton;font-weight:400;font-size:17px;color:#fff;margin:0}.rv small{display:block;font-size:10px;color:#bba8e0}
 /* secret meet cut-in / misc */
@@ -1677,7 +1677,7 @@ function showStats(){$('stats').innerHTML=`<span style="color:#ffd23f">${titleNa
 // リザルト：スタンドごとの与ダメージ・DPS・撃破数
 function resultTable(){const tot=G.st.reduce((a,s)=>a+(s.dmg||0),0)||1;
   return`<div class="rtab"><div class="rth">スタンド別リザルト</div>${[...G.st].sort((a,b)=>(b.dmg||0)-(a.dmg||0)).map(s=>{const sec=Math.max(1,G.t-s.t0),dm=Math.round(s.dmg||0);
-    return`<div class="rrw" style="--c:${s.def.col}"><img src="${s.def.img}" alt=""><div class="rn"><b>${s.def.name}</b><small>${lvTxt(s)}　${Math.round(dm/tot*100)}%</small><div class="rbar"><i style="width:${dm/tot*100}%"></i></div></div>
+    return`<div class="rrw" style="--c:${s.def.col}"><img src="${s.def.img}" alt=""><div class="rn"><b>${s.def.name}</b><small>${lvTxt(s)}　ダメージ割合 ${Math.round(dm/tot*100)}%</small><div class="rbar"><i style="width:${dm/tot*100}%"></i></div></div>
       <div class="rv"><b>${dm.toLocaleString()}</b><small>DPS ${Math.round(dm/sec).toLocaleString()}　撃破 ${(s.kills||0).toLocaleString()}</small></div></div>`}).join('')}</div>`}
 
 /* ================= シークレットキャラ ================= */
