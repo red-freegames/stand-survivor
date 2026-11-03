@@ -756,19 +756,19 @@ const CHARS=[
  {id:'jin',part:3,name:'星野 ジン',en:'JIN HOSHINO',title:'寡黙なる最強の学生',stand:'star',hp:150,pas:'全スタンドの攻撃力 +20%',mods:{dmg:1.2},unlock:{init:1}},
  {id:'nori',part:3,name:'緑川 ノリ',en:'NORI MIDORIKAWA',title:'冷静沈着な優等生',stand:'emerald',hp:130,pas:'獲得経験値 +25%・攻撃力 +8%',mods:{xp:1.25,dmg:1.08},unlock:{meet:'emerald'}},
  {id:'pol',part:3,name:'銀城 ポル',en:'POL GINJO',title:'誇り高き騎士道の剣士',stand:'silver',hp:140,pas:'本体の移動速度 +15%・攻撃力 +5%',mods:{spd:1.15,dmg:1.05},unlock:{meet:'silver'}},
- {id:'dion',part:3,name:'黒宮 ディオン',en:'DION KUROMIYA',title:'時を統べる吸血鬼',stand:'time',hp:180,pas:'攻撃力 +25%・HP自然回復 +2/秒',mods:{dmg:1.25,regen:2},unlock:{awaken:'time'}},
- {id:'jo',part:4,name:'東雲 ジョウ',en:'JOU SHINONOME',title:'リーゼントの優しき番長',stand:'diamond',hp:160,pas:'HPが毎秒 2.5 自然回復',mods:{regen:2.5},unlock:{money:1000}},
+ {id:'dion',part:3,name:'黒宮 ディオン',en:'DION KUROMIYA',title:'時を統べる吸血鬼',stand:'time',hp:180,pas:'攻撃力 +25%・HP自然回復 +2/秒・初期スタンドLv2',mods:{dmg:1.25,regen:2},boost:1,unlock:{awaken:'time'}},
+ {id:'jo',part:4,name:'東雲 ジョウ',en:'JOU SHINONOME',title:'リーゼントの優しき番長',stand:'diamond',hp:160,pas:'HPが毎秒 2.5 自然回復・初期スタンドLv2',mods:{regen:2.5},boost:1,unlock:{money:1000}},
  {id:'oku',part:4,name:'虹川 オク',en:'OKU NIJIKAWA',title:'空間を削る不良',stand:'void',hp:165,pas:'全スタンドの攻撃力 +15%',mods:{dmg:1.15},unlock:{meet:'void'}},
- {id:'rou',part:4,name:'霧辺 ロウ',en:'ROU KIRIBE',title:'取材を愛する天才漫画家',stand:'door',hp:135,pas:'獲得経験値 +20%・攻撃力 +8%',mods:{xp:1.2,dmg:1.08},unlock:{found:12}},
+ {id:'rou',part:4,name:'霧辺 ロウ',en:'ROU KIRIBE',title:'取材を愛する天才漫画家',stand:'door',hp:135,pas:'獲得経験値 +20%・攻撃力 +8%・初期スタンドLv2',mods:{xp:1.2,dmg:1.08},boost:1,unlock:{found:12}},
  {id:'kira',part:4,name:'吉良坂 ヨシ',en:'YOSHI KIRASAKA',title:'平穏を望む会社員',stand:'killer',hp:150,pas:'全スタンドのクールダウン -18%',mods:{cd:.82},unlock:{awaken:'killer'}},
  {id:'haru',part:5,name:'金城 ハル',en:'HARU KANESHIRO',title:'夢を抱くギャングスター',stand:'golden',hp:135,pas:'全スタンドのクールダウン -15%',mods:{cd:.85},unlock:{money:1900}},
  {id:'buchi',part:5,name:'鉤爪 ブチ',en:'BUCHI KAGIZUME',title:'誇り高きギャング幹部',stand:'zipper',hp:150,pas:'全スタンドのクールダウン -12%',mods:{cd:.88},unlock:{meet:'zipper'}},
  {id:'mist',part:5,name:'六道 ミスト',en:'MIST ROKUDO',title:'ゲン担ぎのガンマン',stand:'pistols',hp:140,pas:'獲得経験値 +15%・攻撃力 +10%',mods:{xp:1.15,dmg:1.1},unlock:{meet:'pistols'}},
- {id:'dia',part:5,name:'紅坂 ディア',en:'DIA KOSAKA',title:'正体なき組織のボス',stand:'crimson',hp:170,pas:'全スタンドの攻撃力 +30%',mods:{dmg:1.3},unlock:{awaken:'crimson'}},
+ {id:'dia',part:5,name:'紅坂 ディア',en:'DIA KOSAKA',title:'正体なき組織のボス',stand:'crimson',hp:170,pas:'全スタンドの攻撃力 +30%・初期スタンドLv2',mods:{dmg:1.3},boost:1,unlock:{awaken:'crimson'}},
  {id:'rin',part:6,name:'星野 リン',en:'RIN HOSHINO',title:'石の海から脱出する囚人',stand:'stone',hp:150,pas:'全スタンドの攻撃力 +17%',mods:{dmg:1.17},unlock:{money:3100}},
  {id:'wes',part:6,name:'天野 ウェス',en:'WES AMANO',title:'記憶なき気象使い',stand:'weather',hp:145,pas:'本体の移動速度 +13%・攻撃力 +5%',mods:{spd:1.13,dmg:1.05},unlock:{meet:'weather'}},
  {id:'eru',part:6,name:'雷門 エル',en:'ERU RAIMON',title:'義理堅い姉御',stand:'kiss',hp:155,pas:'全スタンドのクールダウン -13%',mods:{cd:.87},unlock:{boss:20}},
- {id:'enri',part:6,name:'天宮 エンリ',en:'ENRI AMAMIYA',title:'天国を目指す神父',stand:'heaven',hp:160,pas:'クールダウン -18%・移動速度 +15%',mods:{cd:.82,spd:1.15},unlock:{awaken:'heaven'}},
+ {id:'enri',part:6,name:'天宮 エンリ',en:'ENRI AMAMIYA',title:'天国を目指す神父',stand:'heaven',hp:160,pas:'クールダウン -18%・移動速度 +15%・初期スタンドLv2',mods:{cd:.82,spd:1.15},boost:1,unlock:{awaken:'heaven'}},
 ];
 CHARS.forEach(c=>c.look=LOOK[c.id]);
 
@@ -1079,9 +1079,9 @@ const SYN=[
  {id:'p3',name:'スターダストクルセイダース',tag:'3部',col:'#8a6bff',mem:['star','emerald','silver','cross','time','hermit','fool'],
   tiers:[[2,{dmg:.08},'攻撃+8%'],[3,{dmg:.18,cd:.05},'攻撃+18%・CD-5%'],[4,{dmg:.3,cd:.1},'攻撃+30%・CD-10%']]},
  {id:'p4',name:'ダイヤモンドは砕けない',tag:'4部',col:'#ff7ac8',mem:['diamond','killer','void','door','echoes'],
-  tiers:[[2,{hp:30,reg:.5},'最大HP+30・回復+0.5/秒'],[3,{hp:60,reg:1.5},'最大HP+60・回復+1.5/秒'],[4,{hp:100,reg:2.5},'最大HP+100・回復+2.5/秒']]},
+  tiers:[[2,{hp:30,reg:.5,dmg:.08},'最大HP+30・回復+0.5/秒・攻撃+8%'],[3,{hp:60,reg:1.5,dmg:.15},'最大HP+60・回復+1.5/秒・攻撃+15%'],[4,{hp:100,reg:2.5,dmg:.25},'最大HP+100・回復+2.5/秒・攻撃+25%']]},
  {id:'p5',name:'黄金の風',tag:'5部',col:'#ffcc33',mem:['golden','zipper','aero','pistols','violet','crimson','moody'],
-  tiers:[[2,{cd:.06},'CD-6%'],[3,{cd:.12,dmg:.08},'CD-12%・攻撃+8%'],[4,{cd:.18,dmg:.15},'CD-18%・攻撃+15%']]},
+  tiers:[[2,{cd:.06,arm:.04},'CD-6%・被ダメージ-4%'],[3,{cd:.12,dmg:.08,arm:.07},'CD-12%・攻撃+8%・被ダメージ-7%'],[4,{cd:.18,dmg:.15,arm:.1},'CD-18%・攻撃+15%・被ダメージ-10%']]},
  {id:'p6',name:'ストーンオーシャン',tag:'6部',col:'#3dd6ff',mem:['weather','plankton','disc','heaven','stone','kiss','diver'],
   tiers:[[2,{arm:.1},'被ダメージ-10%'],[3,{arm:.2,spd:.08},'被ダメージ-20%・速度+8%'],[4,{arm:.3,spd:.12},'被ダメージ-30%・速度+12%']]},
  {id:'p7',name:'スティール・ボール・ラン',tag:'7部',col:'#ff8ad8',mem:['nail','parallel'],
@@ -1116,7 +1116,7 @@ const TRAIN=[
 makeStatImgs(TRAIN);
 const puLv=id=>SAVE.pu[id]||0,puTotal=()=>TRAIN.reduce((a,t)=>a+puLv(t.id),0);
 const puCost=t=>t.base*(puLv(t.id)+1)+Math.floor(t.base*.04*puTotal());
-// キャラ強化：固有能力を最大3段階まで強化（3段階目は初期スタンドLv2で出陣）
+// キャラ強化：固有能力を最大3段階まで強化（3段階目は初期スタンドLv+1で出陣）
 const CM_COST=[750,1900,3750];
 const cmUp=ch=>{const m=ch.mods;return m.dmg?'攻撃力 +5%':m.regen?'自然回復 +0.5/秒':m.cd?'CD -4%':m.xp?'経験値 +8%':'移動速度 +5%'};
 function charMods(ch){const r=SAVE.cm[ch.id]||0,m={...ch.mods};if(m.dmg)m.dmg+=.05*r;if(m.regen)m.regen+=.5*r;if(m.cd)m.cd*=Math.pow(.96,r);if(m.xp)m.xp+=.08*r;if(m.spd)m.spd+=.05*r;return m}
@@ -1490,7 +1490,7 @@ function pickStage(i){const s=STAGES[i],el=$('slist').children[i];
   if(!el.classList.contains('confirm')){[...$('slist').children].forEach(x=>x.classList.remove('confirm'));el.classList.add('confirm');el.querySelector('.sst').textContent='もう一度タップで解放！';sfx('tick');return}
   SAVE.money-=s.price;SAVE.stages.push(s.id);saveData();sfx('gold');bigText(`STAGE ${i+1} 解放!!`,'gold');showStages(stageCh)}
 function startGame(ch,stg,hard){initAudio();newGame(ch,stg,hard);$('chars').classList.add('hidden');$('stages').classList.add('hidden');$('title').classList.add('hidden');$('over').classList.add('hidden');$('hud').classList.remove('hidden');
-  const d=DEFS.find(x=>x.id===G.ch.stand),s0=mkStand(d);if((SAVE.cm[G.ch.id]||0)>=3)s0.lv=2;G.st.push(s0);recalc();G.slotDirty=true;cutin(d,'new');$('ctype').textContent=`${G.ch.name} ─ ${G.hard?'【HARD】':''}STAGE ${STAGES.indexOf(G.stage)+1}「${G.stage.name}」へ出陣！`}
+  const d=DEFS.find(x=>x.id===G.ch.stand),s0=mkStand(d);s0.lv=1+(G.ch.boost?1:0)+((SAVE.cm[G.ch.id]||0)>=3?1:0);G.st.push(s0);recalc();G.slotDirty=true;cutin(d,'new');$('ctype').textContent=`${G.ch.name} ─ ${G.hard?'【HARD】':''}STAGE ${STAGES.indexOf(G.stage)+1}「${G.stage.name}」へ出陣！`}
 $('startBtn').onclick=showChars;$('retryBtn').onclick=()=>startGame(G.ch,G.stage.id,G.hard);$('charBack').onclick=()=>{$('chars').classList.add('hidden');showTitle()};
 $('stageBack').onclick=()=>{$('stages').classList.add('hidden');showChars()};
 const btnRow=$('retryBtn').parentNode,chBtn=document.createElement('button');chBtn.className='bigbtn sub';chBtn.textContent='キャラ選択';chBtn.onclick=showChars;btnRow.insertBefore(chBtn,$('toTitleBtn'));
@@ -1522,7 +1522,7 @@ function renderTrain(){$('tmoney').textContent='◎ '+SAVE.money.toLocaleString(
       <button class="tb ${ok?'':'ng'}" data-id="${t.id}">${mx?'MAX':'◎ '+c.toLocaleString()}</button></div>`}).join('');
   else $('tlist').innerHTML=CHARS.map(ch=>{const own=isUnlocked(ch),r=SAVE.cm[ch.id]||0,mx=r>=3,c=CM_COST[r],ok=own&&!mx&&SAVE.money>=c,d=DEFS.find(x=>x.id===ch.stand);
     return`<div class="tc ${mx?'mx':''} ${own?'':'lock'}" style="--c:${d.col}"><img src="${ch.img}" alt="" class="tcp"><div class="ti"><b>${own?ch.name:'？？？'}</b>
-      <small>${own?`${ch.pas}　→ 1段階ごとに ${cmUp(ch)}<br>★3段階目：初期スタンドLv2で出陣`:'キャラ選択画面で解放すると強化できる'}</small><div class="tp">${pips(r,3)}</div></div>
+      <small>${own?`${ch.pas}　→ 1段階ごとに ${cmUp(ch)}<br>★3段階目：初期スタンドLv+1で出陣`:'キャラ選択画面で解放すると強化できる'}</small><div class="tp">${pips(r,3)}</div></div>
       <button class="tb ${ok?'':'ng'}" data-cm="${ch.id}">${!own?'未解放':mx?'MAX':'◎ '+c.toLocaleString()}</button></div>`}).join('');
   $('tlist').querySelectorAll('.tb').forEach(b=>b.onclick=()=>b.dataset.id?buyTrain(b.dataset.id,b):buyCM(b.dataset.cm,b))}
 function buyTrain(id,b){const t=TRAIN.find(x=>x.id===id),lv=puLv(id);if(lv>=t.max)return;const c=puCost(t);
