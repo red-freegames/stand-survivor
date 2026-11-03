@@ -275,6 +275,7 @@ body.noflash .flash,body.noflash .cflash{display:none}
 .tc{display:flex;align-items:center;gap:10px;padding:8px 10px;background:rgba(20,10,36,.92);border:2px solid #000;border-left:6px solid var(--c);box-shadow:4px 4px 0 #000;transform:skew(-4deg)}
 .tc>img{height:60px;flex:none}.tc>img.tcp{height:74px}
 .ti{flex:1;min-width:0}.ti b{display:block;font-size:16px;text-shadow:2px 2px 0 #000}.ti small{display:block;font-family:"Hiragino Kaku Gothic ProN","Yu Gothic","Meiryo",sans-serif;font-weight:700;font-size:11px;color:#d9c8ff;line-height:1.45}
+.sdb{height:7px;margin-top:5px;background:#2a1d3a;border:1px solid #000;transform:skew(-20deg)}.sdb i{display:block;height:100%;background:var(--c);box-shadow:0 0 6px var(--c)}.sdv{color:#ffd23f}
 .tp{display:flex;gap:3px;margin-top:5px}.tp i{width:18px;height:7px;background:#2a1d3a;border:1px solid #000;transform:skew(-20deg)}.tp i.on{background:var(--c);box-shadow:0 0 6px var(--c)}
 .tb{flex:none;min-width:86px;font-family:Anton;font-size:16px;padding:8px 10px;background:linear-gradient(135deg,#ffb300,#ff6a00);color:#000;border:2px solid #000;box-shadow:3px 3px 0 #000}
 .tb.ng{background:#333;color:#888}.tb.nope{animation:nope .35s}
@@ -546,7 +547,7 @@ a.bigbtn.more{background:linear-gradient(135deg,#1a4a8a,#3d6bff);font-size:clamp
 <div id="train" class="ov hidden"><div class="rays"></div><div class="inner">
   <h2>TRAINING</h2><div class="sub">マネーで永続的に鍛え上げる ─ 効果は全キャラ・全プレイに適用</div>
   <div class="money">所持マネー <b id="tmoney">◎ 0</b></div>
-  <div id="ttabs"><button data-t="pu">基本ステータス</button><button data-t="cm">キャラ強化</button></div>
+  <div id="ttabs"><button data-t="pu">基本ステータス</button><button data-t="cm">キャラ強化</button><button data-t="sd">スタンド強化</button></div>
   <div id="tlist"></div>
   <div class="row2"><button class="bigbtn sub" id="trainBack">戻る</button><button class="bigbtn sub" id="trainRefund">返金リセット</button></div></div>
 </div>
@@ -651,7 +652,7 @@ let BEST=0;try{BEST=+localStorage.getItem('standSurvBest')||0}catch(e){}
 let SAVE={unlocked:['jin'],stands:['star'],found:[],money:0,stages:['s1'],pu:{},cm:{}};try{const s=JSON.parse(localStorage.getItem('standSurvSave')||'null');if(s&&Array.isArray(s.unlocked))SAVE=Object.assign(SAVE,s)}catch(e){}
 SAVE.pu=SAVE.pu||{};SAVE.cm=SAVE.cm||{};SAVE.stands=SAVE.stands||['star'];SAVE.found=SAVE.found||[];SAVE.cleared=SAVE.cleared||[];SAVE.awakened=SAVE.awakened||[];SAVE.stages=SAVE.stages||['s1'];
 // 図鑑（zk: スタンド別の累計）・実績用カウント（cnt）・達成済み実績・称号・ハードクリア
-SAVE.zk=SAVE.zk||{};SAVE.cnt=SAVE.cnt||{};SAVE.ach=SAVE.ach||[];SAVE.synSeen=(SAVE.synSeen||[]).map(id=>id==='jojo'?'hero':id);SAVE.hardCleared=SAVE.hardCleared||[];SAVE.title=SAVE.title||null;
+SAVE.zk=SAVE.zk||{};SAVE.cnt=SAVE.cnt||{};SAVE.ach=SAVE.ach||[];SAVE.synSeen=(SAVE.synSeen||[]).map(id=>id==='jojo'?'hero':id);SAVE.hardCleared=SAVE.hardCleared||[];SAVE.title=SAVE.title||null;SAVE.sd=SAVE.sd||{};
 const cntAdd=(k,v)=>{SAVE.cnt[k]=(SAVE.cnt[k]||0)+v},cntMax=(k,v)=>{if(v>(SAVE.cnt[k]||0))SAVE.cnt[k]=v};
 function saveData(){try{localStorage.setItem('standSurvSave',JSON.stringify(SAVE))}catch(e){}}
 const isUnlocked=c=>SAVE.unlocked.includes(c.id);
@@ -864,7 +865,7 @@ function explode(x,y,r,d,col,quiet){for(const e of inR(x,y,r))hurt(e,d,{kb:60});
 function healP(v){if(v<=0)return;P.hp=Math.min(P.max,P.hp+v);part(P.x,P.y-10,'#6dff9e',3,80,3,.5)}
 
 /* ================= damage ================= */
-function hurt(e,d,o){if(!e||e.dead||d<=0)return 0;o=o||{};let v=d*G.dmgMul*(e.weak>0?G.weakMul:1)*(G.timeStop>0?1+G.tsDmg:1);if(!o.pa)v*=1-e.armor;if(G.buffT>0)v*=1.4;v=Math.max(1,Math.round(v*rnd(.9,1.1)));if(e.minT){v=Math.max(1,Math.min(v,Math.round(e.bud)));e.bud-=v}e.hp-=v;e.flash=.09;e.hitT=G.t;if(e.prop){kill(e);return v}if(G.src)G.src.dmg=(G.src.dmg||0)+Math.min(v,Math.max(0,e.hp+v));
+function hurt(e,d,o){if(!e||e.dead||d<=0)return 0;o=o||{};let v=d*G.dmgMul*(e.weak>0?G.weakMul:1)*(G.timeStop>0?1+G.tsDmg:1);if(G.src&&G.src.def){const q=SAVE.sd[G.src.def.id];if(q)v*=1+.01*q}if(!o.pa)v*=1-e.armor;if(G.buffT>0)v*=1.4;v=Math.max(1,Math.round(v*rnd(.9,1.1)));if(e.minT){v=Math.max(1,Math.min(v,Math.round(e.bud)));e.bud-=v}e.hp-=v;e.flash=.09;e.hitT=G.t;if(e.prop){kill(e);return v}if(G.src)G.src.dmg=(G.src.dmg||0)+Math.min(v,Math.max(0,e.hp+v));
   if(o.kb&&G.timeStop<=0){const a=Math.atan2(e.y-P.y,e.x-P.x),k=o.kb*(e.type==='boss'?.06:(e.type==='brute'||e.type==='elite')?.35:1)*4;e.kx+=Math.cos(a)*k;e.ky+=Math.sin(a)*k}
   numText(e.x+rnd(-8,8),e.y-e.r,v,o.pa?'#9fd8ff':v>=150?'#ffd23f':'#fff');if(e.hp<=0)kill(e);return v}
 const DEATH_SFX=['ドギャーン','グシャア','メメタァ','バァーン','ズキュウゥン','ドゴォ'];
@@ -1118,6 +1119,9 @@ const puLv=id=>SAVE.pu[id]||0,puTotal=()=>TRAIN.reduce((a,t)=>a+puLv(t.id),0);
 const puCost=t=>t.base*(puLv(t.id)+1)+Math.floor(t.base*.04*puTotal());
 // キャラ強化：固有能力を最大3段階まで強化（3段階目は初期スタンドLv+1で出陣）
 const CM_COST=[750,1900,3750];
+// スタンド強化（やり込み用の奥の手）：スタンドごとに攻撃力+1%／段階、最大20段階。
+// 基本ステータスの攻撃力（全スタンド+5%）より、1%あたりの費用が約4割高くなるよう 13×段階 に設定
+const SD_MAX=20,sdLv=id=>SAVE.sd[id]||0,sdCost=lv=>13*(lv+1);
 const cmUp=ch=>{const m=ch.mods;return m.dmg?'攻撃力 +5%':m.regen?'自然回復 +0.5/秒':m.cd?'CD -4%':m.xp?'経験値 +8%':'移動速度 +5%'};
 function charMods(ch){const r=SAVE.cm[ch.id]||0,m={...ch.mods};if(m.dmg)m.dmg+=.05*r;if(m.regen)m.regen+=.5*r;if(m.cd)m.cd*=Math.pow(.96,r);if(m.xp)m.xp+=.08*r;if(m.spd)m.spd+=.05*r;return m}
 
@@ -1522,14 +1526,21 @@ function renderTrain(){$('tmoney').textContent='◎ '+SAVE.money.toLocaleString(
   if(trainTab==='pu')$('tlist').innerHTML=TRAIN.map(t=>{const lv=puLv(t.id),mx=lv>=t.max,c=puCost(t),ok=!mx&&SAVE.money>=c;
     return`<div class="tc ${mx?'mx':''}" style="--c:${t.col}"><img src="${t.img}" alt=""><div class="ti"><b>${t.name}</b><small>${t.per}</small><div class="tp">${pips(lv,t.max)}</div></div>
       <button class="tb ${ok?'':'ng'}" data-id="${t.id}">${mx?'MAX':'◎ '+c.toLocaleString()}</button></div>`}).join('');
+  else if(trainTab==='sd')$('tlist').innerHTML=DEFS.map(d=>{const own=standUnlocked(d.id),lv=sdLv(d.id),mx=lv>=SD_MAX,c=sdCost(lv),ok=own&&!mx&&SAVE.money>=c;
+    return`<div class="tc ${mx?'mx':''} ${own?'':'lock'}" style="--c:${d.col}"><img src="${d.img}" alt=""><div class="ti"><b>${own?d.name:'？？？'}</b>
+      <small>${own?`攻撃力 <b class="sdv">+${lv}%</b>／最大+${SD_MAX}%`:'ステージに潜むスタンド使いに会うと強化できる'}</small><div class="sdb"><i style="width:${lv/SD_MAX*100}%"></i></div></div>
+      <button class="tb ${ok?'':'ng'}" data-sd="${d.id}">${!own?'未解放':mx?'MAX':'◎ '+c.toLocaleString()}</button></div>`}).join('');
   else $('tlist').innerHTML=CHARS.map(ch=>{const own=isUnlocked(ch),r=SAVE.cm[ch.id]||0,mx=r>=3,c=CM_COST[r],ok=own&&!mx&&SAVE.money>=c,d=DEFS.find(x=>x.id===ch.stand);
     return`<div class="tc ${mx?'mx':''} ${own?'':'lock'}" style="--c:${d.col}"><img src="${ch.img}" alt="" class="tcp"><div class="ti"><b>${own?ch.name:'？？？'}</b>
       <small>${own?`${ch.pas}　→ 1段階ごとに ${cmUp(ch)}<br>★3段階目：初期スタンドLv+1で出陣`:'キャラ選択画面で解放すると強化できる'}</small><div class="tp">${pips(r,3)}</div></div>
       <button class="tb ${ok?'':'ng'}" data-cm="${ch.id}">${!own?'未解放':mx?'MAX':'◎ '+c.toLocaleString()}</button></div>`}).join('');
-  $('tlist').querySelectorAll('.tb').forEach(b=>b.onclick=()=>b.dataset.id?buyTrain(b.dataset.id,b):buyCM(b.dataset.cm,b))}
+  $('tlist').querySelectorAll('.tb').forEach(b=>b.onclick=()=>b.dataset.id?buyTrain(b.dataset.id,b):b.dataset.cm?buyCM(b.dataset.cm,b):buySD(b.dataset.sd,b))}
 function buyTrain(id,b){const t=TRAIN.find(x=>x.id===id),lv=puLv(id);if(lv>=t.max)return;const c=puCost(t);
   if(SAVE.money<c){b.classList.remove('nope');void b.offsetWidth;b.classList.add('nope');sfx('hurt');return}
   SAVE.money-=c;SAVE.pu[id]=lv+1;SAVE.puSpent=(SAVE.puSpent||0)+c;saveData();sfx('gold');renderTrain()}
+function buySD(id,b){const lv=sdLv(id);if(!standUnlocked(id)||lv>=SD_MAX)return;const c=sdCost(lv);
+  if(SAVE.money<c){b.classList.remove('nope');void b.offsetWidth;b.classList.add('nope');sfx('hurt');return}
+  SAVE.money-=c;SAVE.sd[id]=lv+1;saveData();sfx('gold');renderTrain()}
 function buyCM(id,b){const ch=CHARS.find(x=>x.id===id),r=SAVE.cm[id]||0;if(!isUnlocked(ch)||r>=3)return;const c=CM_COST[r];
   if(SAVE.money<c){b.classList.remove('nope');void b.offsetWidth;b.classList.add('nope');sfx('hurt');return}
   SAVE.money-=c;SAVE.cm[id]=r+1;saveData();sfx('gold');renderTrain()}
