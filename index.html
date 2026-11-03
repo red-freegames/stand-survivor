@@ -869,7 +869,7 @@ function hurt(e,d,o){if(!e||e.dead||d<=0)return 0;o=o||{};let v=d*G.dmgMul*(e.we
   numText(e.x+rnd(-8,8),e.y-e.r,v,o.pa?'#9fd8ff':v>=150?'#ffd23f':'#fff');if(e.hp<=0)kill(e);return v}
 const DEATH_SFX=['ドギャーン','グシャア','メメタァ','バァーン','ズキュウゥン','ドゴォ'];
 function kill(e){if(e.prop){breakMask(e);return}
-  if(e.type==='reviver'&&!e.revived){e.revived=1;e.hp=e.max*.5;e.stun=1.2;shout(e.x,e.y-30,'WRYYY!','#ff2040',26);part(e.x,e.y,'#ff2040',8,140);return}
+  if(e.type==='reviver'&&!e.revived){e.revived=1;e.hp=e.max*.3;e.stun=1.2;shout(e.x,e.y-30,'WRYYY!','#ff2040',26);part(e.x,e.y,'#ff2040',8,140);return}
   e.dead=true;G.kills++;cntAdd('kills',1);
   if(e.type==='splitter')for(let i=0;i<2;i++)spawnE('bat',e.x+rnd(-20,20),e.y+rnd(-20,20));
   // 自爆は本体の近くで倒した時だけ（周りの敵も巻き込む）
@@ -1187,7 +1187,7 @@ const ET={ghoul:{hp:12,spd:52,dmg:9,r:13,armor:0},bat:{hp:7,spd:108,dmg:6,r:10,a
   shooter:{hp:28,spd:50,dmg:7,r:14,armor:0},elite:{hp:240,spd:62,dmg:18,r:25,armor:.25},boss:{hp:1600,spd:60,dmg:28,r:44,armor:.35},
   // ステージ専用の敵（G.theme.ue）とボス技・ギミック用
   dasher:{hp:22,spd:58,dmg:12,r:14,armor:0},splitter:{hp:45,spd:40,dmg:12,r:17,armor:.1,gem:1},pack:{hp:16,spd:78,dmg:9,r:12,armor:0},
-  tank:{hp:150,spd:32,dmg:18,r:23,armor:.55,gem:1},rider:{hp:40,spd:0,dmg:16,r:18,armor:.1,gem:1},bomber:{hp:22,spd:62,dmg:8,r:13,armor:0},
+  tank:{hp:90,spd:30,dmg:14,r:23,armor:.3,gem:1},rider:{hp:40,spd:0,dmg:12,r:18,armor:.1,gem:1},bomber:{hp:22,spd:62,dmg:8,r:13,armor:0},
   regen:{hp:80,spd:48,dmg:15,r:18,armor:.3,gem:1},reviver:{hp:28,spd:50,dmg:11,r:14,armor:0},accel:{hp:24,spd:45,dmg:11,r:13,armor:0},
   decoy:{hp:100,spd:70,dmg:16,r:30,armor:0,gem:1},thief:{hp:90,spd:150,dmg:0,r:16,armor:.2}};
 const BOSSES=[{n:'石仮面の帝王',c:'#8a7a5a',e:'#ff2040'},{n:'柱に眠りし戦士',c:'#4a6a8a',e:'#ffd23f'},{n:'矢に選ばれし刺客',c:'#6a3a8a',e:'#3dffe0'},{n:'天国を目指す神父',c:'#2a4a3a',e:'#c8f0ff'},{n:'究極生命体',c:'#9a2a4a',e:'#ffffff'}];
@@ -1239,13 +1239,13 @@ const THEME={
  s1:{bg:'town',gim:'fountain',gn:'癒しの泉',gd:'泉の上に立つとHP回復（使うと枯れる）',ue:'dasher',un:'狂犬',ud:'立ち止まってから飛びかかる',
   en:{ghoul:['ghoul','#4a5a7a','#0a1020','#ffcc33'],bat:['bat','#2a2a2a','#000000','#ff3355'],brute:['brute','#6a6a5a','#15150a','#ff8a00'],uniq:['beast','#8a6a4a','#1a0e04','#ff3355']},
   boss:[['不良狩りの番長','#3a3a6a','#ffd23f'],['電線を這う怪人','#2a5a8a','#3dd6ff'],['岩に潜む脱獄囚','#6a6a5a','#ff8a00'],['弓と矢の兄','#5a3a2a','#ffd23f']],skill:'quake'},
- s2:{bg:'desert',gim:'storm',gn:'砂嵐',gd:'定期的に視界が狭まり、敵が増える',ue:'splitter',un:'砂のミイラ',ud:'倒すと2体に分裂する',
+ s2:{bg:'desert',gim:'storm',gn:'砂嵐',gd:'ときどき視界が狭まり、敵が少し増える',ue:'splitter',un:'砂のミイラ',ud:'倒すと2体に分裂する',
   en:{ghoul:['mummy','#8a7a5a','#1a1408','#3dffe0'],bat:['bat','#7a5a3a','#1a0e04','#ffcc00'],brute:['brute','#9a7a4a','#2a1a08','#ff5c2a'],uniq:['mummy','#c8a050','#3a2a08','#ff2040']},
   boss:[['砂に潜む猟犬','#8a6a3a','#ffcc00'],['鉄塔の住人','#5a5a6a','#3dffe0'],['太陽を操る男','#c86a2a','#ffffff'],['砂漠の魔術師','#7a2a1a','#ffd23f']],skill:'burrow'},
  s3:{bg:'alley',gim:'thief',gn:'ひったくり',gd:'マネー袋を抱えて逃げる泥棒を倒すと大金',ue:'pack',un:'ギャングの群れ',ud:'5体の群れで素早く襲う',
   en:{ghoul:['shooter','#2a3a6a','#05051a','#ffd23f'],bat:['bat','#6a6a7a','#101018','#ff9a3d'],brute:['brute','#5a4a6a','#140a1a','#ff3d8b'],uniq:['helm','#3a2a5a','#0a0414','#ff3d8b']},
   boss:[['老化を撒く車掌','#4a4a3a','#ff9a3d'],['鏡の中の暗殺者','#3a5a7a','#c8f0ff'],['ミイラ化の刺客','#6a5a3a','#ff3355'],['組織の親衛隊長','#2a2a5a','#ffd23f']],skill:'decoy'},
- s4:{bg:'prison',gim:'light',gn:'サーチライト',gd:'光に入ると警報が鳴り、囚人が押し寄せる',ue:'tank',un:'重装看守',ud:'固くて重い。防御が非常に高い',
+ s4:{bg:'prison',gim:'light',gn:'サーチライト',gd:'光に入ると警報が鳴り、囚人が押し寄せる',ue:'tank',un:'重装看守',ud:'固くて重い。防御が高い',
   en:{ghoul:['helm','#4a6a5a','#081410','#ff3355'],bat:['bat','#3a5a2a','#081004','#c8ff3d'],brute:['brute','#6a7a7a','#101414','#3dffe0'],uniq:['helm','#2a3a4a','#000000','#3dd6ff']},
   boss:[['看守の幻影','#3a4a4a','#ff3355'],['雨を降らす囚人','#4a5a7a','#9ad0ff'],['懲罰房のワニ','#3a5a2a','#ffcc00'],['記憶を奪う神父の影','#1a1a1a','#e6e6e6']],skill:'cage'},
  s5:{bg:'wild',gim:'relic',gn:'聖なる遺物',gd:'遺物を拾うと20秒間 攻撃力+40%',ue:'rider',un:'暴れ馬',ud:'一直線に駆け抜ける',
@@ -1254,13 +1254,13 @@ const THEME={
  s6:{bg:'night',gim:'mine',gn:'地雷原',gd:'踏むと大爆発。敵を巻き込めるが自分も傷つく',ue:'bomber',un:'自爆する影',ud:'倒すと少し後に爆発する',
   en:{ghoul:['ghoul','#5a3a6e','#1a0a20','#ff3355'],bat:['bat','#3a2a4a','#0a0010','#ffcc00'],brute:['brute','#7a6a5a','#1a120a','#ff8a00'],uniq:['shooter','#8a2a5a','#1a0410','#ff6fae']},
   boss:[['写真の中の老人','#6a5a4a','#ffcc00'],['爆弾戦車','#5a5a5a','#ff6fae'],['空気の爆弾','#4a6a8a','#ffffff'],['平穏を望む殺人鬼','#5a2a6a','#ff6fae']],skill:'mines'},
- s7:{bg:'colosseum',gim:'arena',gn:'闘技場チャレンジ',gd:'20秒間 敵が倍増。耐え抜けば矢尻',ue:'regen',un:'不屈の剣闘士',ud:'攻撃が止むとHPが回復する',
+ s7:{bg:'colosseum',gim:'arena',gn:'闘技場チャレンジ',gd:'15秒間 敵が1.5倍。耐え抜けば矢尻',ue:'regen',un:'不屈の剣闘士',ud:'攻撃が止むとHPが回復する',
   en:{ghoul:['helm','#8a6a3a','#1a1004','#ff3355'],bat:['beast','#9a7a3a','#1a1004','#ff3355'],brute:['brute','#8a7a6a','#1a140a','#ff3355'],uniq:['helm','#c8a040','#3a2a08','#ffffff']},
   boss:[['亡者の番人','#4a3a3a','#ff3355'],['血を這うカビ','#3a6a3a','#c8ff3d'],['運命の守護者','#6a5a2a','#ffd23f'],['時を消し飛ばす帝王','#2a2a2a','#e0002a']],skill:'vanish'},
  s8:{bg:'mansion',gim:'dark',gn:'闇の館',gd:'視界が狭い。闇の中に敵が潜む',ue:'reviver',un:'不死の屍人',ud:'一度倒しても蘇る',
   en:{ghoul:['ghoul','#6a7a6a','#0a140a','#ff2040'],bat:['bat','#5a1a2a','#100004','#ff2040'],brute:['mummy','#5a4a5a','#0a060a','#ff2040'],uniq:['ghoul','#c8c8b8','#202020','#ff0020']},
   boss:[['氷の鳥','#5a7a9a','#c8f0ff'],['魂を賭けるディーラー','#4a2a4a','#ffd23f'],['館の門番','#3a3a3a','#ff2040'],['世界を統べる吸血鬼','#c8a020','#2fe08a']],skill:'tstop'},
- s9:{bg:'cape',gim:'accel',gn:'時の加速',gd:'時間とともに敵がどんどん速くなる',ue:'accel',un:'加速する亡霊',ud:'生きている時間が長いほど速くなる',
+ s9:{bg:'cape',gim:'accel',gn:'時の加速',gd:'時間とともに敵が少しずつ速くなる',ue:'accel',un:'加速する亡霊',ud:'生きている時間が長いほど速くなる',
   en:{ghoul:['shooter','#c8c8d8','#202030','#3dd6ff'],bat:['bat','#3a6a8a','#04101a','#c8f0ff'],brute:['brute','#5a6a7a','#0a1018','#3dffe0'],uniq:['beast','#3a8a9a','#04141a','#ffffff']},
   boss:[['加速する潜水艦','#2a4a6a','#3dd6ff'],['緑色の赤子','#3a8a3a','#ffffff'],['重力を操る神父','#2a2a3a','#c8f0ff'],['天国に到達した者','#e8e8f0','#ffd23f']],skill:'accel'},
 };
@@ -1347,10 +1347,10 @@ function pickType(){const m=G.t/60,r=R();if(m>2&&r<.2)return'brute';if(m>1&&r<.5
 // 通常湧き：一定確率でステージ専用の敵に置き換わる
 function spawnUnit(x,y){if(G.t>30&&R()<.12)spawnUniq(x,y);else spawnE(pickType(),x,y)}
 function spawnUniq(x,y){const u=G.theme.ue;if(!G.uSeen){G.uSeen=true;shout(P.x,P.y-90,G.theme.un+' 出現!','#ff8ad8',30)}
-  if(u==='pack'){for(let i=0;i<5;i++)spawnE('pack',x+rnd(-40,40),y+rnd(-40,40),'uniq');return}
+  if(u==='pack'){for(let i=0;i<4;i++)spawnE('pack',x+rnd(-40,40),y+rnd(-40,40),'uniq');return}
   const e=spawnE(u,x,y,'uniq');if(u==='rider'){const a=Math.atan2(P.y-y,P.x-x);e.rvx=Math.cos(a);e.rvy=Math.sin(a);e.spd=230;e.lt=5}}
 // ボスは画面外の遠くに出現し、WARNING 表示（3秒）が消えるまで画面の外で待つ
-function spawnBoss(k){const a=R()*TAU,rr=Math.hypot(VW,VH)/2+260,x=P.x+Math.cos(a)*rr,y=P.y+Math.sin(a)*rr,b=G.theme.boss[k],fin=k===3,e=spawnE('boss',x,y,'boss'+k);e.ent=3.2;e.st=0;e.stT=rnd(1,1.8);e.minT=fin?45:30;e.bud=e.max/e.minT;e.hp=e.max=1600*hpScale()*(fin?1.65:.7);e.name=b[0];e.k=k;e.idx=[0,2,3,4][k];e.final=fin;G.boss=e;
+function spawnBoss(k){const a=R()*TAU,rr=Math.hypot(VW,VH)/2+260,x=P.x+Math.cos(a)*rr,y=P.y+Math.sin(a)*rr,b=G.theme.boss[k],fin=k===3,e=spawnE('boss',x,y,'boss'+k);e.ent=3.2;e.st=0;e.stT=rnd(1,1.8);e.minT=fin?45:30;e.bud=e.max/e.minT;e.hp=e.max=1600*hpScale()*(fin?1.65:k===0?.5:.7);e.name=b[0];e.k=k;e.idx=[0,2,3,4][k];e.final=fin;G.boss=e;
   $('wname').textContent=b[0];const w=$('warn');w.classList.remove('show');void w.offsetWidth;w.classList.add('show');setTimeout(()=>w.classList.remove('show'),3000);sfx('boss');G.shake=12}
 
 /* ---- ボスの固有技（ステージごとに1種。突進・召喚に加えて使う） ---- */
@@ -1361,9 +1361,9 @@ function bossSkill(e){const k=G.theme.skill,dmg=e.dmg*.9;e.st=0;e.stT=rnd(2,3.2)
   else if(k==='decoy'){for(let i=0;i<3;i++){const a=i/3*TAU+R(),d=spawnE('decoy',e.x+Math.cos(a)*100,e.y+Math.sin(a)*100,'boss'+e.k);d.hp=d.max=e.max*.05}part(e.x,e.y,'#ffffff',20,300)}
   else if(k==='cage'){G.cage={x:P.x,y:P.y,r:260,t:3.5,dmg:dmg*.4};bigText('檻に閉じ込められた!','red')}
   else if(k==='stampede'){e.chg=2;e.st=1;e.stT=.4;e.ca=Math.atan2(P.y-e.y,P.x-e.x)}
-  else if(k==='mines'){for(let i=0;i<7;i++){const a=R()*TAU,d=rnd(0,260);hzAt(P.x+Math.cos(a)*d,P.y+Math.sin(a)*d,62,1.3,dmg*.8,'#ff6fae')}}
+  else if(k==='mines'){for(let i=0;i<5;i++){const a=R()*TAU,d=rnd(0,260);hzAt(P.x+Math.cos(a)*d,P.y+Math.sin(a)*d,62,1.3,dmg*.8,'#ff6fae')}}
   else if(k==='vanish'){const a=Math.atan2(P.fy,P.fx)+Math.PI;e.tx=P.x+Math.cos(a)*170;e.ty=P.y+Math.sin(a)*170;e.after=1;bossHide(e,1.2)}
-  else if(k==='tstop'){G.pfz=1.3;bigText('時が…止まった!?','red');sfx('tstop');e.st=2;e.stT=1;e.ca=Math.atan2(P.y-e.y,P.x-e.x)}
+  else if(k==='tstop'){G.pfz=1;bigText('時が…止まった!?','red');sfx('tstop');e.st=1;e.stT=1.2;e.ca=Math.atan2(P.y-e.y,P.x-e.x)}
   else if(k==='accel'){G.accelT=6;bigText('時は加速する!!','cyan');sfx('zap')}}
 // 潜行・消失：遠方へ退避させ（攻撃対象にならない）、hide 秒後に tx,ty へ出現
 function bossHide(e,t){e.hide=t;fx({t:'ring',x:e.x,y:e.y,r0:10,r1:90,life:.35,col:'#ff2050',lw:6});part(e.x,e.y,'#ff2050',16,260);e.x=e.y=60000}
@@ -1371,9 +1371,9 @@ function bossAppear(e){e.x=e.tx;e.y=e.ty;fx({t:'ring',x:e.x,y:e.y,r0:10,r1:110,l
   if(e.after){e.after=0;e.st=1;e.stT=.35;e.ca=Math.atan2(P.y-e.y,P.x-e.x)}}
 
 /* ---- ステージギミック ---- */
-function lights(){return[0,1].map(i=>{const a=G.lightA+i*Math.PI;return{x:G.lx+Math.cos(a)*300,y:G.ly+Math.sin(a*1.3)*220,r:110}})}
+function lights(){const a=G.lightA;return[{x:G.lx+Math.cos(a)*170,y:G.ly+Math.sin(a*1.3)*120,r:80}]}
 function updGim(dt,rdt){const g=G.gim;
-  G.eSpd=(g==='accel'?1+G.t/600*.6:1)*(G.accelT>0?1.7:1)*(G.alarm>0?1.3:1);
+  G.eSpd=(g==='accel'?1+G.t/600*.25:1)*(G.accelT>0?1.35:1)*(G.alarm>0?1.1:1);
   if(G.accelT>0)G.accelT-=rdt;if(G.pfz>0)G.pfz-=rdt;if(G.buffT>0)G.buffT-=rdt;if(G.alarm>0)G.alarm-=rdt;if(G.alarmCd>0)G.alarmCd-=rdt;
   // 予告円（ボス技・自爆）：時間が来たら範囲内の本体にダメージ
   for(const h of G.hz){h.t-=dt;if(h.t<=0){h.dead=true;if((h.x-P.x)**2+(h.y-P.y)**2<(h.r+P.r)**2)damageP(h.dmg);if(h.en)for(const e of inR(h.x,h.y,h.r))hurt(e,h.en,{kb:80});
@@ -1382,16 +1382,16 @@ function updGim(dt,rdt){const g=G.gim;
   if(g==='fountain'){G.spots=G.spots.filter(s=>s.hp>0&&(s.x-P.x)**2+(s.y-P.y)**2<2400*2400);
     while(G.spots.length<3){const a=R()*TAU,d=rnd(450,1100);G.spots.push({x:P.x+Math.cos(a)*d,y:P.y+Math.sin(a)*d,hp:70})}
     for(const s of G.spots)if((s.x-P.x)**2+(s.y-P.y)**2<60*60&&P.hp<P.max){const v=Math.min(s.hp,10*rdt);P.hp=Math.min(P.max,P.hp+v);s.hp-=v;if(R()<.2)part(P.x,P.y,'#6dd6ff',2,80,3,.5);if(s.hp<=0)shout(s.x,s.y-30,'泉が枯れた','#9ad0ff',22)}}
-  else if(g==='storm'){if(G.storm>0)G.storm-=rdt;else if(G.t>=G.stormNext){G.storm=12;G.stormNext=G.t+70;bigText('砂嵐が来る!!','gold');sfx('rumble')}}
+  else if(g==='storm'){if(G.storm>0)G.storm-=rdt;else if(G.t>=G.stormNext){G.storm=8;G.stormNext=G.t+90;bigText('砂嵐が来る!!','gold');sfx('rumble')}}
   else if(g==='thief'){if(G.t>=G.thiefNext){G.thiefNext=G.t+45;const a=R()*TAU,e=spawnE('thief',P.x+Math.cos(a)*320,P.y+Math.sin(a)*320,'thief');shout(e.x,e.y-40,'ひったくりだ!!','#ffd23f',30)}}
-  else if(g==='light'){G.lightA+=rdt*.7;G.lx+=(P.x-G.lx)*Math.min(1,rdt*.6);G.ly+=(P.y-G.ly)*Math.min(1,rdt*.6);
-    for(const l of lights())if((l.x-P.x)**2+(l.y-P.y)**2<l.r*l.r&&G.alarmCd<=0){G.alarm=4;G.alarmCd=8;bigText('警報!! 囚人が押し寄せる','red');sfx('boss');for(let i=0;i<14;i++){const[x,y]=spawnPos();spawnE('ghoul',x,y)}}}
+  else if(g==='light'){G.lightA+=rdt*.3;G.lx+=(P.x-G.lx)*Math.min(1,rdt*.2);G.ly+=(P.y-G.ly)*Math.min(1,rdt*.2);
+    for(const l of lights())if((l.x-P.x)**2+(l.y-P.y)**2<l.r*l.r&&G.alarmCd<=0){G.alarm=3;G.alarmCd=14;bigText('警報!! 囚人が押し寄せる','red');sfx('boss');for(let i=0;i<6;i++){const[x,y]=spawnPos();spawnE('ghoul',x,y)}}}
   else if(g==='relic'){if(G.t>=G.relicNext){G.relicNext=G.t+40;const a=R()*TAU,d=rnd(550,850);G.items.push({x:P.x+Math.cos(a)*d,y:P.y+Math.sin(a)*d,t:'relic',ph:0});shout(P.x,P.y-90,'遺物の気配…!','#ffd23f',26)}}
   else if(g==='mine'){G.mines=G.mines.filter(m=>!m.dead&&(m.x-P.x)**2+(m.y-P.y)**2<2200*2200);
-    while(G.mines.length<12){const a=R()*TAU,d=rnd(350,1300);G.mines.push({x:P.x+Math.cos(a)*d,y:P.y+Math.sin(a)*d})}
-    for(const m of G.mines)if((m.x-P.x)**2+(m.y-P.y)**2<24*24){m.dead=true;explode(m.x,m.y,130,90+G.t/600*120,'#ff6fae');damageP(Math.round(P.max*.08));shout(m.x,m.y-40,'カチッ…ドグォォン!!','#ff6fae',30)}}
+    while(G.mines.length<8){const a=R()*TAU,d=rnd(350,1300);G.mines.push({x:P.x+Math.cos(a)*d,y:P.y+Math.sin(a)*d})}
+    for(const m of G.mines)if((m.x-P.x)**2+(m.y-P.y)**2<24*24){m.dead=true;explode(m.x,m.y,130,90+G.t/600*120,'#ff6fae');damageP(Math.round(P.max*.05));shout(m.x,m.y-40,'カチッ…ドグォォン!!','#ff6fae',30)}}
   else if(g==='arena'){if(G.arena>0){G.arena-=rdt;if(G.arena<=0){G.chests.push({x:P.x+70,y:P.y,ph:0});bigText('チャレンジ達成!! 矢尻を獲得','gold');sfx('win')}}
-    else if(G.t>=G.arenaNext&&!G.boss){G.arena=20;G.arenaNext=G.t+85;bigText('闘技場チャレンジ!! 20秒耐え抜け','red');sfx('boss')}}}
+    else if(G.t>=G.arenaNext&&!G.boss){G.arena=15;G.arenaNext=G.t+100;bigText('闘技場チャレンジ!! 15秒耐え抜け','red');sfx('boss')}}}
 // ワールド座標で描くギミック（泉・地雷・サーチライト・予告円・檻）
 function drawGim(vis){
   for(const s of G.spots){if(!vis(s.x,s.y))continue;const k=s.hp/70,g=ctx.createRadialGradient(s.x,s.y,4,s.x,s.y,64);g.addColorStop(0,'rgba(140,230,255,.9)');g.addColorStop(1,'rgba(40,120,255,0)');ctx.globalAlpha=.3+.45*k;ctx.fillStyle=g;ctx.beginPath();ctx.arc(s.x,s.y,64,0,TAU);ctx.fill();
@@ -1402,8 +1402,8 @@ function drawGim(vis){
   if(G.cage){const c=G.cage;ctx.globalAlpha=.12;ctx.fillStyle='#9ad0ff';ctx.beginPath();ctx.arc(c.x,c.y,c.r,0,TAU);ctx.fill();ctx.globalAlpha=1;ctx.strokeStyle='#9ad0ff';ctx.lineWidth=6;ctx.setLineDash([14,10]);ctx.lineDashOffset=-G.t*40;ctx.beginPath();ctx.arc(c.x,c.y,c.r,0,TAU);ctx.stroke();ctx.setLineDash([])}}
 // 画面全体にかけるギミック演出（闇・砂嵐・時止め返し・加速・闘技場・遺物の力）
 function drawGimScreen(){const px=(P.x-G.cx)*Z+W/2,py=(P.y-G.cy)*Z+H/2;
-  if(G.gim==='dark'){const g=ctx.createRadialGradient(px,py,140*Z,px,py,340*Z);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(1,'rgba(4,0,8,.93)');ctx.fillStyle=g;ctx.fillRect(0,0,W,H)}
-  if(G.storm>0){ctx.globalAlpha=Math.max(0,Math.min(1,G.storm/1.5,(12-G.storm)/1.5));const g=ctx.createRadialGradient(px,py,170*Z,px,py,400*Z);g.addColorStop(0,'rgba(180,130,60,.15)');g.addColorStop(1,'rgba(120,80,30,.9)');ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+  if(G.gim==='dark'){const g=ctx.createRadialGradient(px,py,210*Z,px,py,440*Z);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(1,'rgba(4,0,8,.8)');ctx.fillStyle=g;ctx.fillRect(0,0,W,H)}
+  if(G.storm>0){ctx.globalAlpha=Math.max(0,Math.min(1,G.storm/1.5,(8-G.storm)/1.5));const g=ctx.createRadialGradient(px,py,230*Z,px,py,480*Z);g.addColorStop(0,'rgba(180,130,60,.1)');g.addColorStop(1,'rgba(120,80,30,.7)');ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
     ctx.strokeStyle='rgba(240,200,130,.35)';ctx.lineWidth=2;ctx.beginPath();for(let i=0;i<40;i++){const y=(i*97)%H,x=((G.t*900+i*211)%(W+200))-100;ctx.moveTo(x,y);ctx.lineTo(x+60,y+8)}ctx.stroke();ctx.globalAlpha=1}
   if(G.pfz>0){ctx.globalCompositeOperation='saturation';ctx.fillStyle='#808080';ctx.fillRect(0,0,W,H);ctx.globalCompositeOperation='source-over';ctx.fillStyle='rgba(200,160,20,.18)';ctx.fillRect(0,0,W,H)}
   const ak=G.accelT>0?.5:G.gim==='accel'?Math.min(.35,G.t/600*.35):0;
@@ -1841,7 +1841,7 @@ function update(rdt){
   // spawning
   const m=G.t/40;
   if(G.timeStop<=0){
-    const spnMul=(G.storm>0?1.4:1)*(G.arena>0?2:1)*(G.hard?HARD.spn:1);
+    const spnMul=(G.storm>0?1.15:1)*(G.arena>0?1.5:1)*(G.hard?HARD.spn:1);
     G.spawnAcc+=rdt*Math.min(48,4.2+m*3.4)*G.stage.spn*spnMul;const cap=G.boss?900:1050;
     while(G.spawnAcc>=1){G.spawnAcc--;if(G.en.length<cap){const[x,y]=spawnPos();spawnUnit(x,y)}}
     if(G.t>=G.nextWave){G.nextWave+=60;const n=Math.min(150,58+m*12.8),tp=m>4?'bat':'ghoul',rr=Math.hypot(VW,VH)/2+30;for(let i=0;i<n;i++){const a=i/n*TAU;spawnE(tp,P.x+Math.cos(a)*rr,P.y+Math.sin(a)*rr)}shout(P.x,P.y-90,'ドドドドド','#a94dff',40)}
@@ -1888,7 +1888,7 @@ function updEnemies(dt){
       else if((e.cyc=(e.cyc??rnd(1,3))-dt)<=0&&d<380){e.cyc=rnd(2,3.2);e.wind=.45;e.flash=.2}}
     else if(e.type==='rider'){vx=e.rvx;vy=e.rvy;if((e.lt-=dt)<=0){e.dead=true;continue}}
     else if(e.type==='regen'){if(G.t-(e.hitT||0)>1.5&&e.hp<e.max)e.hp=Math.min(e.max,e.hp+e.max*.1*dt)}
-    else if(e.type==='accel'){e.age=(e.age||0)+dt;spd*=Math.min(2.6,1+e.age*.12)}
+    else if(e.type==='accel'){e.age=(e.age||0)+dt;spd*=Math.min(1.8,1+e.age*.08)}
     else if(e.type==='thief'){vx=-vx;vy=-vy;if((e.lt=(e.lt??15)-dt)<=0){e.dead=true;shout(e.x,e.y-30,'逃げられた…','#aaaaaa',22);continue}}
     if(e.type==='shooter'){if(d<160){vx=-vx;vy=-vy}else if(d<240){const t=vx;vx=-vy*.7;vy=t*.7}
       if((e.sht-=dt)<=0&&d<420){e.sht=rnd(2,2.8);const a=Math.atan2(dy,dx);G.eb.push({x:e.x,y:e.y,vx:Math.cos(a)*170,vy:Math.sin(a)*170,r:6,life:4,dmg:e.dmg})}}
