@@ -482,6 +482,20 @@ a.bigbtn.more{background:linear-gradient(135deg,#1a4a8a,#3d6bff);font-size:clamp
 #kan{font-size:clamp(120px,30vw,260px);line-height:1;color:#fff;-webkit-text-stroke:3px #000;text-shadow:10px 10px 0 #000,0 0 60px #ffd23f;animation:lvin .8s cubic-bezier(.2,1.8,.4,1)}
 #stats{font-size:14px;line-height:2;text-shadow:2px 2px 0 #000;color:#f3e6ff}
 #stats b{font-family:Anton;font-size:22px;color:#ffd23f;margin:0 4px}
+/* 見やすさ調整：小さすぎる文字と、暗い背景に暗い色の文字を底上げ */
+.stag{font-size:12px;padding:4px 7px;opacity:1;color:#fff;background:rgba(0,0,0,.88);border:2px solid var(--c);text-shadow:1px 1px 0 #000;font-family:"Hiragino Kaku Gothic ProN","Yu Gothic","Meiryo",sans-serif;font-weight:800}
+.stag.on,.stag.hot{color:#000;text-shadow:none}
+.sr .srh .stag{color:#fff}.sr.on .srh .stag{color:#000}
+#syn .stag{font-size:12px}
+.cjp{color:color-mix(in srgb,var(--c) 40%,#fff);font-size:15px}
+.ctag{font-size:12px;color:color-mix(in srgb,var(--t) 50%,#fff)}
+.cdesc{font-size:13.5px;color:#fff}
+.card.stat .cdesc small{font-size:12px;color:#e3d4ff}
+.dtag{color:color-mix(in srgb,var(--c) 40%,#fff)}
+#kills,#hptxt,#gim,.rn small,.rv small,.pn small,.pstats div,.srt,.pd::after,.sgm,.unlock span,.sen,.sdf,.snp span,.srow small,.keys,.ti small,.zst,.ch .tt,.ch .ps,.pcp,.pgold,.pd,.dtag,.ast{font-size:12px}
+.ch .sd small{font-size:11px;color:#d0d0d0}
+.srt{color:#c4b8dc}.rn small,.rv small,.pn small{color:#d9c8ff}
+@media (max-width:680px){.cjp{font-size:13px}.cdesc{font-size:12.5px}}
 </style>
 </head>
 <body>
@@ -1345,7 +1359,7 @@ function bossSkill(e){const k=G.theme.skill,dmg=e.dmg*.9;e.st=0;e.stT=rnd(2,3.2)
   if(k==='quake'){for(let i=0;i<4;i++){const a=R()*TAU,d=i?rnd(60,170):0;hzAt(P.x+Math.cos(a)*d,P.y+Math.sin(a)*d,75,1,dmg)}G.shake=8;sfx('rumble')}
   else if(k==='burrow'){const a=R()*TAU;e.tx=P.x+Math.cos(a)*30;e.ty=P.y+Math.sin(a)*30;hzAt(e.tx,e.ty,100,1.1,dmg*1.2,'#d8c070');bossHide(e,1.1)}
   else if(k==='decoy'){for(let i=0;i<3;i++){const a=i/3*TAU+R(),d=spawnE('decoy',e.x+Math.cos(a)*100,e.y+Math.sin(a)*100,'boss'+e.k);d.hp=d.max=e.max*.05}part(e.x,e.y,'#ffffff',20,300)}
-  else if(k==='cage'){G.cage={x:P.x,y:P.y,r:200,t:5,dmg:dmg*.5};bigText('檻に閉じ込められた!','red')}
+  else if(k==='cage'){G.cage={x:P.x,y:P.y,r:260,t:3.5,dmg:dmg*.4};bigText('檻に閉じ込められた!','red')}
   else if(k==='stampede'){e.chg=2;e.st=1;e.stT=.4;e.ca=Math.atan2(P.y-e.y,P.x-e.x)}
   else if(k==='mines'){for(let i=0;i<7;i++){const a=R()*TAU,d=rnd(0,260);hzAt(P.x+Math.cos(a)*d,P.y+Math.sin(a)*d,62,1.3,dmg*.8,'#ff6fae')}}
   else if(k==='vanish'){const a=Math.atan2(P.fy,P.fx)+Math.PI;e.tx=P.x+Math.cos(a)*170;e.ty=P.y+Math.sin(a)*170;e.after=1;bossHide(e,1.2)}
@@ -1364,7 +1378,7 @@ function updGim(dt,rdt){const g=G.gim;
   // 予告円（ボス技・自爆）：時間が来たら範囲内の本体にダメージ
   for(const h of G.hz){h.t-=dt;if(h.t<=0){h.dead=true;if((h.x-P.x)**2+(h.y-P.y)**2<(h.r+P.r)**2)damageP(h.dmg);if(h.en)for(const e of inR(h.x,h.y,h.r))hurt(e,h.en,{kb:80});
     fx({t:'boom',x:h.x,y:h.y,r:h.r,life:.3,col:h.col});part(h.x,h.y,h.col,10,h.r*4,4,.4);G.shake=Math.max(G.shake,6);sfx('boom')}}G.hz=G.hz.filter(h=>!h.dead);
-  if(G.cage){const c=G.cage;c.t-=rdt;const dx=P.x-c.x,dy=P.y-c.y,d=Math.hypot(dx,dy);if(d>c.r-P.r){P.x=c.x+dx/d*(c.r-P.r);P.y=c.y+dy/d*(c.r-P.r);damageP(c.dmg)}if(c.t<=0)G.cage=null}
+  if(G.cage){const c=G.cage;c.t-=rdt;const dx=P.x-c.x,dy=P.y-c.y,d=Math.hypot(dx,dy);if(d>c.r-P.r){P.x=c.x+dx/d*(c.r-P.r);P.y=c.y+dy/d*(c.r-P.r);if(!c.hit){c.hit=1;damageP(c.dmg)}}if(c.t<=0)G.cage=null}
   if(g==='fountain'){G.spots=G.spots.filter(s=>s.hp>0&&(s.x-P.x)**2+(s.y-P.y)**2<2400*2400);
     while(G.spots.length<3){const a=R()*TAU,d=rnd(450,1100);G.spots.push({x:P.x+Math.cos(a)*d,y:P.y+Math.sin(a)*d,hp:70})}
     for(const s of G.spots)if((s.x-P.x)**2+(s.y-P.y)**2<60*60&&P.hp<P.max){const v=Math.min(s.hp,10*rdt);P.hp=Math.min(P.max,P.hp+v);s.hp-=v;if(R()<.2)part(P.x,P.y,'#6dd6ff',2,80,3,.5);if(s.hp<=0)shout(s.x,s.y-30,'泉が枯れた','#9ad0ff',22)}}
