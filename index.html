@@ -1120,8 +1120,9 @@ const puCost=t=>t.base*(puLv(t.id)+1)+Math.floor(t.base*.04*puTotal());
 // キャラ強化：固有能力を最大3段階まで強化（3段階目は初期スタンドLv+1で出陣）
 const CM_COST=[750,1900,3750];
 // スタンド強化（やり込み用の奥の手）：スタンドごとに攻撃力+1%／段階、最大20段階。
-// 基本ステータスの攻撃力（全スタンド+5%）より、1%あたりの費用が約4割高くなるよう 13×段階 に設定
-const SD_MAX=20,sdLv=id=>SAVE.sd[id]||0,sdCost=lv=>13*(lv+1);
+// 基本ステータスの攻撃力の最終段階（割増し込みで全スタンド+5%に約2,650）を1体+1%に換算した費用の約1.4倍から始まるよう 120×段階 に設定
+//（いつ買っても基本ステータスより割高＝トレーニングを終えた後の奥の手）
+const SD_MAX=20,sdLv=id=>SAVE.sd[id]||0,sdCost=lv=>120*(lv+1);
 const cmUp=ch=>{const m=ch.mods;return m.dmg?'攻撃力 +5%':m.regen?'自然回復 +0.5/秒':m.cd?'CD -4%':m.xp?'経験値 +8%':'移動速度 +5%'};
 function charMods(ch){const r=SAVE.cm[ch.id]||0,m={...ch.mods};if(m.dmg)m.dmg+=.05*r;if(m.regen)m.regen+=.5*r;if(m.cd)m.cd*=Math.pow(.96,r);if(m.xp)m.xp+=.08*r;if(m.spd)m.spd+=.05*r;return m}
 
