@@ -1331,7 +1331,8 @@ function spawnUnit(x,y){if(G.t>30&&R()<.12)spawnUniq(x,y);else spawnE(pickType()
 function spawnUniq(x,y){const u=G.theme.ue;if(!G.uSeen){G.uSeen=true;shout(P.x,P.y-90,G.theme.un+' 出現!','#ff8ad8',30)}
   if(u==='pack'){for(let i=0;i<5;i++)spawnE('pack',x+rnd(-40,40),y+rnd(-40,40),'uniq');return}
   const e=spawnE(u,x,y,'uniq');if(u==='rider'){const a=Math.atan2(P.y-y,P.x-x);e.rvx=Math.cos(a);e.rvy=Math.sin(a);e.spd=230;e.lt=5}}
-function spawnBoss(k){const[x,y]=spawnPos(),b=G.theme.boss[k],fin=k===3,e=spawnE('boss',x,y,'boss'+k);e.hp=e.max=1600*hpScale()*(fin?2.2:1);e.name=b[0];e.k=k;e.idx=[0,2,3,4][k];e.final=fin;G.boss=e;
+// ボスは画面外の遠くに出現し、WARNING 表示（3秒）が消えるまで画面の外で待つ
+function spawnBoss(k){const a=R()*TAU,rr=Math.hypot(VW,VH)/2+260,x=P.x+Math.cos(a)*rr,y=P.y+Math.sin(a)*rr,b=G.theme.boss[k],fin=k===3,e=spawnE('boss',x,y,'boss'+k);e.ent=3.2;e.st=0;e.stT=rnd(1,1.8);e.hp=e.max=1600*hpScale()*(fin?2.2:1);e.name=b[0];e.k=k;e.idx=[0,2,3,4][k];e.final=fin;G.boss=e;
   $('wname').textContent=b[0];const w=$('warn');w.classList.remove('show');void w.offsetWidth;w.classList.add('show');setTimeout(()=>w.classList.remove('show'),3000);sfx('boss');G.shake=12}
 
 /* ---- ボスの固有技（ステージごとに1種。突進・召喚に加えて使う） ---- */
@@ -1867,15 +1868,16 @@ function updEnemies(dt){
     else if(e.type==='thief'){vx=-vx;vy=-vy;if((e.lt=(e.lt??15)-dt)<=0){e.dead=true;shout(e.x,e.y-30,'逃げられた…','#aaaaaa',22);continue}}
     if(e.type==='shooter'){if(d<160){vx=-vx;vy=-vy}else if(d<240){const t=vx;vx=-vy*.7;vy=t*.7}
       if((e.sht-=dt)<=0&&d<420){e.sht=rnd(2,2.8);const a=Math.atan2(dy,dx);G.eb.push({x:e.x,y:e.y,vx:Math.cos(a)*170,vy:Math.sin(a)*170,r:6,life:4,dmg:e.dmg})}}
+    else if(e.type==='boss'&&e.ent>0){if((e.ent-=dt)<=0&&$('warn').classList.contains('show'))e.ent=.05;if(d<Math.hypot(VW,VH)/2+30)spd=0}
     else if(e.type==='boss'){e.stT-=dt;
       if(e.st===1){spd=0;if(e.stT<=0){e.st=2;e.stT=.55}}
       else if(e.st===2){vx=Math.cos(e.ca);vy=Math.sin(e.ca);spd=e.spd*4.4*G.eSpd;if(e.stT<=0){if(e.chg>0){e.chg--;e.st=1;e.stT=.35;e.ca=Math.atan2(dy,dx)}else{e.st=0;e.stT=rnd(2.2,3.6)}}}
       else if(e.st===4){spd=0;if(e.stT<=0)bossSkill(e)}
       else if(e.st===3){spd*=.3;if(e.stT<=0){const n=8+e.idx*2,o=R()*TAU;for(let i=0;i<n;i++){const a=o+i/n*TAU;spawnE('bat',e.x+Math.cos(a)*70,e.y+Math.sin(a)*70)}fx({t:'ring',x:e.x,y:e.y,r0:20,r1:110,life:.4,col:'#ff2050',lw:6});e.st=0;e.stT=rnd(2.2,3.6);shout(e.x,e.y-60,'ゴゴゴ','#ff2050',36)}}
-      else if(e.stT<=0){const r=R();if(r<.4){e.st=1;e.stT=.75;e.ca=Math.atan2(dy,dx)}else if(r<.65){e.st=3;e.stT=.5}else{e.st=4;e.stT=.6;shout(e.x,e.y-70,SKILL_TXT[G.theme.skill],'#ff2050',30)}}}
+      else if(e.stT<=0&&Math.abs(e.x-G.cx)<VW/2-40&&Math.abs(e.y-G.cy)<VH/2-40){const r=R();if(r<.4){e.st=1;e.stT=.75;e.ca=Math.atan2(dy,dx)}else if(r<.65){e.st=3;e.stT=.5}else{e.st=4;e.stT=.6;shout(e.x,e.y-70,SKILL_TXT[G.theme.skill],'#ff2050',30)}}}
     e.x+=(vx*spd+e.kx)*dt;e.y+=(vy*spd+e.ky)*dt;const kd=Math.exp(-dt*8);e.kx*=kd;e.ky*=kd;
     if(e.type!=='boss'){const nb=inR(e.x,e.y,2);let c=0;for(const o of nb){if(o===e)continue;if(++c>6)break;const ox=e.x-o.x,oy=e.y-o.y,od=Math.hypot(ox,oy)||.1,ov=e.r+o.r-od;if(ov>0){e.x+=ox/od*ov*.25;e.y+=oy/od*ov*.25}}}
-    if(d<e.r+P.r&&e.dmg>0)damageP(e.dmg);
+    if(d<e.r+P.r&&e.dmg>0&&!(e.ent>0))damageP(e.dmg);
     if(d>far&&e.type!=='boss'&&e.type!=='elite'&&e.type!=='rider'&&e.type!=='thief'){const a=Math.atan2(P.fy,P.fx)+rnd(-1.1,1.1),rr=Math.hypot(VW,VH)/2+40;e.x=P.x+Math.cos(a)*rr;e.y=P.y+Math.sin(a)*rr}
   }
   if(G.en.length>50||G.t%1<.02)G.en=G.en.filter(e=>!e.dead);
