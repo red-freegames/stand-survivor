@@ -512,7 +512,7 @@ a.bigbtn.more{background:linear-gradient(135deg,#1a4a8a,#3d6bff);font-size:clamp
   <div class="row2" style="margin-top:14px"><button class="bigbtn sub" id="trainBtn">トレーニング</button><button class="bigbtn sub" id="zukanBtn">図鑑・実績</button><button class="bigbtn sub" id="setBtn">設定</button></div>
   <div class="row2"><a class="bigbtn sub more" href="https://red-freegames.github.io/">🎮 他のゲームを見る</a></div>
   <div class="best" id="best"></div>
-  <div class="how">PC：WASD / 矢印キーで移動　スマホ：画面をドラッグ<br>攻撃はすべてスタンドが自律して行う ─ 最大6体・全28種<br>ステージに潜むスタンド使いを探し出せ（MAPで位置を確認）<br>マネーで主人公の解放・トレーニングができる<br>Lv MAXのスタンドは「矢尻」に触れると覚醒する<br>1ステージ10分。10:00まで生き延びればクリア<br>ステージ5以降は、9:00に現れるラスボスも倒す必要がある</div>
+  <div class="how">PC：WASD / 矢印キーで移動　スマホ：画面をドラッグ<br>攻撃はすべてスタンドが自律して行う ─ 最大6体・全28種<br>ステージに潜むスタンド使いを探し出せ（MAPで位置を確認）<br>マネーで主人公の解放・トレーニングができる<br>Lv MAXのスタンドは「矢尻」に触れると覚醒する<br>1ステージ10分。10:00まで生き延びればクリア<br>ステージ5以降は、8:00に現れるラスボスも倒す必要がある</div>
   <div class="marq"><div id="marq"></div></div>
 </div>
 
@@ -850,7 +850,7 @@ function explode(x,y,r,d,col,quiet){for(const e of inR(x,y,r))hurt(e,d,{kb:60});
 function healP(v){if(v<=0)return;P.hp=Math.min(P.max,P.hp+v);part(P.x,P.y-10,'#6dff9e',3,80,3,.5)}
 
 /* ================= damage ================= */
-function hurt(e,d,o){if(!e||e.dead||d<=0)return 0;o=o||{};let v=d*G.dmgMul*(e.weak>0?G.weakMul:1)*(G.timeStop>0?1+G.tsDmg:1);if(!o.pa)v*=1-e.armor;if(G.buffT>0)v*=1.4;v=Math.max(1,Math.round(v*rnd(.9,1.1)));e.hp-=v;e.flash=.09;e.hitT=G.t;if(e.prop){kill(e);return v}if(G.src)G.src.dmg=(G.src.dmg||0)+Math.min(v,Math.max(0,e.hp+v));
+function hurt(e,d,o){if(!e||e.dead||d<=0)return 0;o=o||{};let v=d*G.dmgMul*(e.weak>0?G.weakMul:1)*(G.timeStop>0?1+G.tsDmg:1);if(!o.pa)v*=1-e.armor;if(G.buffT>0)v*=1.4;v=Math.max(1,Math.round(v*rnd(.9,1.1)));if(e.minT){v=Math.max(1,Math.min(v,Math.round(e.bud)));e.bud-=v}e.hp-=v;e.flash=.09;e.hitT=G.t;if(e.prop){kill(e);return v}if(G.src)G.src.dmg=(G.src.dmg||0)+Math.min(v,Math.max(0,e.hp+v));
   if(o.kb&&G.timeStop<=0){const a=Math.atan2(e.y-P.y,e.x-P.x),k=o.kb*(e.type==='boss'?.06:(e.type==='brute'||e.type==='elite')?.35:1)*4;e.kx+=Math.cos(a)*k;e.ky+=Math.sin(a)*k}
   numText(e.x+rnd(-8,8),e.y-e.r,v,o.pa?'#9fd8ff':v>=150?'#ffd23f':'#fff');if(e.hp<=0)kill(e);return v}
 const DEATH_SFX=['ドギャーン','グシャア','メメタァ','バァーン','ズキュウゥン','ドゴォ'];
@@ -861,7 +861,7 @@ function kill(e){if(e.prop){breakMask(e);return}
   // 自爆は本体の近くで倒した時だけ（周りの敵も巻き込む）
   else if(e.type==='bomber'&&(e.x-P.x)**2+(e.y-P.y)**2<380*380){G.hz.push({x:e.x,y:e.y,r:70,t:.6,max:.6,dmg:e.dmg*1.6,en:40,col:'#ff6fae'});shout(e.x,e.y-20,'自爆!','#ff6fae',24)}
   else if(e.type==='thief'){for(let i=0;i<6;i++)dropGold(e.x+rnd(-20,20),e.y+rnd(-20,20),15);shout(e.x,e.y-40,'マネー奪還!!','#ffd23f',36);sfx('gold')}if(G.src)G.src.kills=(G.src.kills||0)+1;part(e.x,e.y,e.type==='brute'?'#c9a27a':'#b0207a',e.type==='boss'?40:7,e.type==='boss'?400:160,3.5,.5);
-  if(e.type==='boss'){if(e.final){G.finalKilled=true;if(needFinal(STAGES.indexOf(G.stage)))setTimeout(()=>bigText('ラスボス撃破!! 10:00まで生き延びればステージクリア','gold'),900)}G.bossKills++;SAVE.bossKills=(SAVE.bossKills||0)+1;saveData();checkCharUnlocks();dropGold(e.x,e.y+20,100);G.chests.push({x:e.x,y:e.y,ph:0});setTimeout(()=>shout(e.x,e.y-50,'矢尻出現!!','#ffd23f',34),500);shout(e.x,e.y-40,'ドギャァァン!!','#ffd23f',56);explode(e.x,e.y,160,0,'#ffd23f');bigText('撃 破 !!','gold');G.shake=18;G.boss=null}
+  if(e.type==='boss'){if(e.final){G.finalKilled=true;if(needFinal(STAGES.indexOf(G.stage)))setTimeout(()=>bigText('ラスボス撃破!! 10:00まで生き延びればステージクリア','gold'),900)}G.bossKills++;SAVE.bossKills=(SAVE.bossKills||0)+1;saveData();checkCharUnlocks();dropGold(e.x,e.y+20,100);G.chests.push({x:e.x,y:e.y,ph:0});setTimeout(()=>shout(e.x,e.y-50,'矢尻出現!!','#ffd23f',34),500);shout(e.x,e.y-40,'ドギャァァン!!','#ffd23f',56);explode(e.x,e.y,160,0,'#ffd23f');bigText('撃 破 !!','gold');G.shake=18;if(G.boss===e)G.boss=null}
   else{if(e.type==='elite'){G.chests.push({x:e.x,y:e.y,ph:0});shout(e.x,e.y-50,'矢尻!!','#ffd23f',32);dropGold(e.x+12,e.y,25)}else{const gt=ET[e.type].gem||0;dropGem(e.x,e.y,gt);const gc=gt?.15:.04;if(R()<gc)dropGold(e.x+rnd(-8,8),e.y+rnd(-8,8),gt?5:1)}if(e.type==='elite'||R()<.025)shout(e.x,e.y-20,DEATH_SFX[(R()*DEATH_SFX.length)|0],'#ff8ad8',e.type==='elite'?40:26)}
   if(e.bomb>0){e.bomb=0;shout(e.x,e.y-20,'ドグォォン','#ff6fae',34);const ps=G.src;G.src=e.bombSrc||ps;explode(e.x,e.y,e.bombR,e.bombD,'#ff6fae');G.src=ps}}
 const GEMV=[1,5,25];
@@ -1177,8 +1177,8 @@ const ET={ghoul:{hp:12,spd:52,dmg:9,r:13,armor:0},bat:{hp:7,spd:108,dmg:6,r:10,a
   regen:{hp:80,spd:48,dmg:15,r:18,armor:.3,gem:1},reviver:{hp:28,spd:50,dmg:11,r:14,armor:0},accel:{hp:24,spd:45,dmg:11,r:13,armor:0},
   decoy:{hp:100,spd:70,dmg:16,r:30,armor:0,gem:1},thief:{hp:90,spd:150,dmg:0,r:16,armor:.2}};
 const BOSSES=[{n:'石仮面の帝王',c:'#8a7a5a',e:'#ff2040'},{n:'柱に眠りし戦士',c:'#4a6a8a',e:'#ffd23f'},{n:'矢に選ばれし刺客',c:'#6a3a8a',e:'#3dffe0'},{n:'天国を目指す神父',c:'#2a4a3a',e:'#c8f0ff'},{n:'究極生命体',c:'#9a2a4a',e:'#ffffff'}];
-// 1ステージ=10分。ボスは2:30/5:00/7:30、9:00に究極生命体。10:00まで生き残ればクリア
-const STAGE_TIME=600,BOSS_T=[150,300,450,540],BOSS_IDX=[0,2,3,4];
+// 1ステージ=10分。ボスは2:00/4:00/6:00、8:00にラスボス。10:00まで生き残ればクリア
+const STAGE_TIME=600,BOSS_T=[120,240,360,480],BOSS_IDX=[0,2,3,4];
 // 難易度係数（敵HP・敵攻撃・スタンド基礎火力）
 const DIFF={hp:1.45,atk:1.4,pow:.85};
 function drawE(g,k,r,body,rim,eye){g.lineJoin='round';g.lineCap='round';g.lineWidth=2.5;g.strokeStyle=rim;
@@ -1336,7 +1336,7 @@ function spawnUniq(x,y){const u=G.theme.ue;if(!G.uSeen){G.uSeen=true;shout(P.x,P
   if(u==='pack'){for(let i=0;i<5;i++)spawnE('pack',x+rnd(-40,40),y+rnd(-40,40),'uniq');return}
   const e=spawnE(u,x,y,'uniq');if(u==='rider'){const a=Math.atan2(P.y-y,P.x-x);e.rvx=Math.cos(a);e.rvy=Math.sin(a);e.spd=230;e.lt=5}}
 // ボスは画面外の遠くに出現し、WARNING 表示（3秒）が消えるまで画面の外で待つ
-function spawnBoss(k){const a=R()*TAU,rr=Math.hypot(VW,VH)/2+260,x=P.x+Math.cos(a)*rr,y=P.y+Math.sin(a)*rr,b=G.theme.boss[k],fin=k===3,e=spawnE('boss',x,y,'boss'+k);e.ent=3.2;e.st=0;e.stT=rnd(1,1.8);e.hp=e.max=1600*hpScale()*(fin?2.2:1);e.name=b[0];e.k=k;e.idx=[0,2,3,4][k];e.final=fin;G.boss=e;
+function spawnBoss(k){const a=R()*TAU,rr=Math.hypot(VW,VH)/2+260,x=P.x+Math.cos(a)*rr,y=P.y+Math.sin(a)*rr,b=G.theme.boss[k],fin=k===3,e=spawnE('boss',x,y,'boss'+k);e.ent=3.2;e.st=0;e.stT=rnd(1,1.8);e.minT=fin?45:30;e.bud=e.max/e.minT;e.hp=e.max=1600*hpScale()*(fin?1.65:.7);e.name=b[0];e.k=k;e.idx=[0,2,3,4][k];e.final=fin;G.boss=e;
   $('wname').textContent=b[0];const w=$('warn');w.classList.remove('show');void w.offsetWidth;w.classList.add('show');setTimeout(()=>w.classList.remove('show'),3000);sfx('boss');G.shake=12}
 
 /* ---- ボスの固有技（ステージごとに1種。突進・召喚に加えて使う） ---- */
@@ -1672,7 +1672,7 @@ function drawChest(c){const b=Math.sin(G.t*4)*3,p=.5+.2*Math.sin(G.t*6);ctx.save
 
 function gameOver(){if(G.state==='over')return;G.state='over';bankGold();sfx('over');cv.classList.add('sepia');joy.on=false;$('joy').classList.add('hidden');saveBest();
   setTimeout(()=>{$('overHead').innerHTML='<div id="tbc">To Be Continued</div>';showStats();$('over').classList.remove('hidden')},1100)}
-// 10:00まで生存でクリア。ただしステージ5以降（各部のボスが登場）は 9:00 のラスボスを倒さないとクリアにならない
+// 10:00まで生存でクリア。ただしステージ5以降（各部のボスが登場）は 8:00 のラスボスを倒さないとクリアにならない
 const needFinal=si=>si>=4;
 function win(){G.state='win';sfx('win');saveBest();const si=STAGES.indexOf(G.stage),nx=STAGES[si+1],ok=G.finalKilled||!needFinal(si),first=ok&&!SAVE.cleared.includes(G.stage.id),wasAll=allClear();if(first)SAVE.cleared.push(G.stage.id);
   const hFirst=ok&&G.hard&&!SAVE.hardCleared.includes(G.stage.id);if(hFirst)SAVE.hardCleared.push(G.stage.id);bankGold();
@@ -1864,6 +1864,8 @@ function updEnemies(dt){
     if(e.echo>0){e.echo-=dt;if((e.echoT-=dt)<=0){e.echoT=.33;G.src=e.echoSrc;hurt(e,e.echoD);G.src=null;if(e.dead)continue}}
     if(e.flash>0)e.flash-=dt;
     // 潜行・消失中のボス（遠くに退避させており、時間が来たら出現）
+    // ボスは1秒あたりに受けるダメージに上限（中ボス30秒・ラスボス45秒より早くは倒れない）
+    if(e.minT){const r=e.max/e.minT;e.bud=Math.min(e.bud+dt/SPEED*r,r*2)}
     if(e.hide>0){if(!ts){e.hide-=dt;if(e.hide<=0)bossAppear(e)}continue}
     if(ts)continue;if(e.weak>0)e.weak-=dt;if(e.stun>0){e.stun-=dt*(e.type==='boss'?4:1);continue} // ボスは行動停止が1/4の時間で解ける
     const dx=P.x-e.x,dy=P.y-e.y,d=Math.hypot(dx,dy)||1;let spd=e.spd*(e.weak>0?.5:1)*G.eSpd,vx=dx/d,vy=dy/d;
