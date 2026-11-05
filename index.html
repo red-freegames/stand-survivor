@@ -1417,14 +1417,15 @@ function drawEB(b){ctx.save();ctx.translate(b.x,b.y);const a=Math.atan2(b.vy,b.v
 const BOSS_STYLE=['long','hat','pomp','curl','fringe','bob','tower','cap'],BOSS_SYM=['☠','✦','✸','♛'],BSTAND={};
 function drawBoss(e,bob){const k=e.k??e.bk??0,b=(e.bth||G.theme).boss[k],si=e.bsi??STAGES.indexOf(G.stage),key=STAGES[si].id+k;
   const st=BSTAND[key]||(BSTAND[key]=mkStandSprite({col:b[2],sym:BOSS_SYM[k]},si*4+k+2));
-  const face=P.x<e.x?-1:1,fin=e.final,sc=fin?2.35:2.05,act=e.st===4||e.st===5||e.st===3;
+  // 人間サイズで描く（当たり判定 e.r は従来どおり）
+  const face=P.x<e.x?-1:1,fin=e.final,sc=fin?1.4:1.25,act=e.st===4||e.st===5||e.st===3;
   // オーラ
-  ctx.globalAlpha=.25+.15*Math.sin(G.t*5);const g=ctx.createRadialGradient(e.x,e.y-20,10,e.x,e.y-20,e.r*2.2);g.addColorStop(0,hexA(b[2],.7));g.addColorStop(1,hexA(b[2],0));ctx.fillStyle=g;ctx.beginPath();ctx.arc(e.x,e.y-20,e.r*2.2,0,TAU);ctx.fill();ctx.globalAlpha=1;
+  ctx.globalAlpha=.25+.15*Math.sin(G.t*5);const g=ctx.createRadialGradient(e.x,e.y-10,6,e.x,e.y-10,52*sc);g.addColorStop(0,hexA(b[2],.7));g.addColorStop(1,hexA(b[2],0));ctx.fillStyle=g;ctx.beginPath();ctx.arc(e.x,e.y-10,52*sc,0,TAU);ctx.fill();ctx.globalAlpha=1;
   // スタンド（技を使う時は前に乗り出す）
-  const sx=e.x-face*(act?-10:34),sy=e.y-62+bob*2+Math.sin(G.t*2.4)*4,ss=fin?1.25:1.05;ctx.save();ctx.globalAlpha=act?.95:.7;ctx.translate(sx,sy);ctx.scale(face*ss,ss);ctx.drawImage(st,-60,-74);ctx.restore();
+  const sx=e.x-face*(act?-6:20),sy=e.y-36+bob+Math.sin(G.t*2.4)*3,ss=fin?.72:.62;ctx.save();ctx.globalAlpha=act?.95:.72;ctx.translate(sx,sy);ctx.scale(face*ss,ss);ctx.drawImage(st,-60,-74);ctx.restore();
   // 本体
-  drawHuman(e.x,e.y+6+bob,face,e.flash>0?'#ffffff':null,sc,e.st===2?Math.sin(G.t*30):Math.sin(G.anim*5)*.6,{style:BOSS_STYLE[(si*4+k)%BOSS_STYLE.length],coat:b[1],hair:shade(b[1],-.45),acc:b[2]});
-  if(fin){ctx.fillStyle='#ffd23f';ctx.font='18px "Dela Gothic One"';ctx.textAlign='center';ctx.fillText('♛',e.x,e.y-e.r*sc*.62-6)}}
+  drawHuman(e.x,e.y+bob,face,e.flash>0?'#ffffff':null,sc,e.st===2?Math.sin(G.t*30):Math.sin(G.anim*5)*.6,{style:BOSS_STYLE[(si*4+k)%BOSS_STYLE.length],coat:b[1],hair:shade(b[1],-.45),acc:b[2]});
+  if(fin){ctx.fillStyle='#ffd23f';ctx.font='16px "Dela Gothic One"';ctx.textAlign='center';ctx.fillText('♛',e.x,e.y-36*sc-4)}}
 /* ---- ボスの固有技（ステージごとに1種。突進・召喚に加えて使う） ---- */
 const hzAt=(x,y,r,t,dmg,col)=>G.hz.push({x,y,r,t,max:t,dmg,col:col||'#ff2050'});
 function bossSkill(e){const k=e.skill||G.theme.skill,dmg=e.dmg*.9;e.st=0;e.stT=rnd(2,3.2);
@@ -2082,7 +2083,7 @@ function render(){
   if(G.boss&&G.boss.st===1){const b=G.boss;ctx.save();ctx.globalAlpha=.25+.25*Math.sin(G.t*30);ctx.strokeStyle='#ff2050';ctx.lineWidth=b.r*2;ctx.beginPath();ctx.moveTo(b.x,b.y);ctx.lineTo(b.x+Math.cos(b.ca)*420,b.y+Math.sin(b.ca)*420);ctx.stroke();ctx.restore()}
   // enemies
   for(const e of G.en){if(e.dead||!vis(e.x,e.y))continue;const s=e.spr,bob=Math.sin(G.anim*7+e.ph)*1.6;
-    if(e.type==='elite'||e.type==='boss'){ctx.globalAlpha=.35+.15*Math.sin(G.t*6);ctx.fillStyle=e.type==='boss'?'#ff2050':'#ffd23f';ctx.beginPath();ctx.ellipse(e.x,e.y+e.r*.8,e.r*1.2,e.r*.45,0,0,TAU);ctx.fill();ctx.globalAlpha=1}
+    if(e.type==='elite'||e.type==='boss'){ctx.globalAlpha=.35+.15*Math.sin(G.t*6);ctx.fillStyle=e.type==='boss'?'#ff2050':'#ffd23f';ctx.beginPath();if(e.type==='boss')ctx.ellipse(e.x,e.y+20,e.r,e.r*.36,0,0,TAU);else ctx.ellipse(e.x,e.y+e.r*.8,e.r*1.2,e.r*.45,0,0,TAU);ctx.fill();ctx.globalAlpha=1}
     else{ctx.fillStyle='rgba(0,0,0,.35)';ctx.beginPath();ctx.ellipse(e.x,e.y+e.r*.85,e.r*.8,e.r*.28,0,0,TAU);ctx.fill()}
     if(e.weak>0){ctx.strokeStyle='rgba(200,120,255,.8)';ctx.lineWidth=2;ctx.beginPath();ctx.arc(e.x,e.y,e.r+4,0,TAU);ctx.stroke()}
     if(e.type==='boss'||(e.type==='decoy'&&e.bk!==undefined))drawBoss(e,bob);else ctx.drawImage(e.flash>0?s.f:s.n,e.x-s.s/2,e.y-s.s/2+bob);if(e.type==='thief')ctx.drawImage(GEMSPR[4],e.x-20,e.y-e.r-34+bob);
