@@ -184,6 +184,7 @@ button{font-family:inherit;cursor:pointer;border:0;color:#fff}
 .big.red{color:#ff2050;text-shadow:6px 6px 0 #000,0 0 40px #ff0030}
 .big.pink{color:#ff8ad8;font-family:Anton;font-size:clamp(50px,12vw,120px)}
 .big.cyan{color:#9ff5ff}
+.big.long{font-size:clamp(22px,5.4vw,56px)}
 .unlock{position:absolute;right:12px;top:calc(var(--sat) + 140px);display:flex;align-items:center;gap:10px;padding:8px 18px 8px 8px;max-width:92vw;background:linear-gradient(90deg,rgba(20,8,36,.95),rgba(60,20,90,.95));border:3px solid #000;box-shadow:0 0 0 3px #ffd23f inset,6px 6px 0 #000,0 0 30px rgba(255,210,63,.5);transform:skew(-8deg);animation:unl 4.2s cubic-bezier(.2,1.4,.4,1) forwards}
 .unlock img{height:70px}
 .unlock small{display:block;font-family:Anton;font-size:13px;letter-spacing:.08em;background:linear-gradient(90deg,#ff3d8b,#ffd23f,#3dd6ff);-webkit-background-clip:text;background-clip:text;color:transparent}
@@ -1032,7 +1033,7 @@ const DEFS=[
    for(const e of tg){e.bomb=.7;e.bombSrc=s;e.bombD=30+10*s.lv;e.bombR=55+6*s.lv}aimAt(s,tg[0]);say(s,tg[0].x,tg[0].y-34,'カチッ');s.cd=2.4*cdm(s)}}},
 {id:'crimson',type:2,name:'CRIMSON EPITAPH',jp:'消し飛ぶ時間',col:'#e0002a',sym:'✠',cry:'時間を消し飛ばすッ!!',
  desc:l=>`時間を消し飛ばし2.5秒間 完全無敵。終了時、半径${180+12*l}の敵に${45+15*l}（CD${Math.max(8,14-.6*l).toFixed(1)}秒）`,
- upd(s,dt){if(G.erase>0)return;if((s.cd-=dt)<=0){if(!near(P.x,P.y,240)){s.cd=.3;return}G.erase=2.5;G.eraseS=s;cntAdd('erase',1);bigText('時間消去','red');sfx('cut');s.cd=Math.max(8,14-.6*s.lv)*cdm(s)}}},
+ upd(s,dt){if(G.erase>0)return;if((s.cd-=dt)<=0){if(!near(P.x,P.y,240)){s.cd=.3;return}G.erase=2.5;G.eraseS=s;cntAdd('erase',1);bigText('「結果」だけだ!!','red long');sfx('cut');s.cd=Math.max(8,14-.6*s.lv)*cdm(s)}}},
 {id:'void',type:2,name:'VOID HAND',jp:'空間を削る右手',col:'#5d7bff',sym:'◐',cry:'ガオンッ!!',
  desc:l=>`前方扇状${130+6*l}の空間ごと敵を削り取る${30+10*l}（防御無視）。削られた敵は3秒間 鈍足＆被ダメージ+30%`,
  upd(s,dt){if((s.cd-=dt)<=0){if(!near(P.x,P.y,200)){s.cd=.15;return}const a=faceAng(200),r=130+6*s.lv;
@@ -1384,15 +1385,44 @@ function spawnUniq(x,y){const u=G.theme.ue;if(!G.uSeen){G.uSeen=true;shout(P.x,P
   if(u==='pack'){for(let i=0;i<4;i++)spawnE('pack',x+rnd(-40,40),y+rnd(-40,40),'uniq');return}
   const e=spawnE(u,x,y,'uniq');if(u==='rider'){const a=Math.atan2(P.y-y,P.x-x);e.rvx=Math.cos(a);e.rvy=Math.sin(a);e.spd=230;e.lt=5}}
 // ボスは画面外の遠くに出現し、WARNING 表示（3秒）が消えるまで画面の外で待つ
-function spawnBoss(k){const a=R()*TAU,rr=Math.hypot(VW,VH)/2+260,x=P.x+Math.cos(a)*rr,y=P.y+Math.sin(a)*rr,b=G.theme.boss[k],fin=k===3,e=spawnE('boss',x,y,'boss'+k);e.ent=3.2;e.st=0;e.stT=rnd(1,1.8);e.minT=fin?45:30;e.bud=e.max/e.minT;e.hp=e.max=1600*hpScale()*(fin?1.2:k===0?.5:.7)*(1-.08*Math.max(0,STAGES.indexOf(G.stage)-3));e.name=b[0];e.k=k;e.idx=[0,2,3,4][k];e.final=fin;G.boss=e;
+function spawnBoss(k){const a=R()*TAU,rr=Math.hypot(VW,VH)/2+260,x=P.x+Math.cos(a)*rr,y=P.y+Math.sin(a)*rr,b=G.theme.boss[k],fin=k===3,e=spawnE('boss',x,y,'boss'+k);e.ent=3.2;e.st=0;e.stT=rnd(1,1.8);e.minT=fin?45:30;e.bud=e.max/e.minT;e.pw=BOSS_PW[(STAGES.indexOf(G.stage)+k)%BOSS_PW.length];e.hp=e.max=1600*hpScale()*(fin?1.2:k===0?.5:.7)*(1-.08*Math.max(0,STAGES.indexOf(G.stage)-3));e.name=b[0];e.k=k;e.idx=[0,2,3,4][k];e.final=fin;G.boss=e;
   $('wname').textContent=b[0];const w=$('warn');w.classList.remove('show');void w.offsetWidth;w.classList.add('show');setTimeout(()=>w.classList.remove('show'),3000);sfx('boss');G.shake=12}
 
+/* ---- ボスの飛び道具（ボスごとに1種）：ナイフの扇投げ・炎の弾・結晶の全方位・追尾する念弾 ----
+   突進と召喚の頻度を減らした分をこれに回している（被ダメージの総量は据え置き狙い） */
+const BOSS_PW=['knife','fire','shard','orb'],PW_TXT={knife:'ナイフの雨だッ!!',fire:'焼き尽くせ!!',shard:'砕け散れ!!',orb:'逃がさんッ!!'};
+function bossShot(e){const a=Math.atan2(P.y-e.y,P.x-e.x),dm=e.dmg*.35,eb=(an,sp,r,life,kind,o)=>G.eb.push(Object.assign({x:e.x+Math.cos(an)*30,y:e.y+Math.sin(an)*30-20,vx:Math.cos(an)*sp,vy:Math.sin(an)*sp,r,life,dmg:dm,kind},o||{}));
+  if(e.pw==='knife'){for(let i=-2;i<=2;i++)eb(a+i*.2,430,6,1.6,'knife');sfx('shot')}
+  else if(e.pw==='fire'){for(let i=-1;i<=1;i++)eb(a+i*.3,210,12,2.8,'fire');sfx('boom')}
+  else if(e.pw==='shard'){const o=R()*TAU;for(let i=0;i<10;i++)eb(o+i/10*TAU,200,7,2.4,'shard');sfx('zap')}
+  else{for(let i=-1;i<=1;i++)eb(a+i*.7,170,10,3.5,'orb',{home:1.6});sfx('zap')}
+  fx({t:'ring',x:e.x,y:e.y-20,r0:10,r1:70,life:.3,col:'#ffd23f',lw:4})}
+// 飛び道具の見た目
+function drawEB(b){ctx.save();ctx.translate(b.x,b.y);const a=Math.atan2(b.vy,b.vx);
+  if(b.kind==='knife'){ctx.rotate(a);ctx.fillStyle='#e8eef8';ctx.strokeStyle='#000';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(14,0);ctx.lineTo(-4,-4);ctx.lineTo(-4,4);ctx.closePath();ctx.fill();ctx.stroke();ctx.fillStyle='#5a3a2a';ctx.fillRect(-11,-2.5,7,5);ctx.strokeRect(-11,-2.5,7,5)}
+  else if(b.kind==='fire'){const f=1+.15*Math.sin(G.t*30+b.x),g=ctx.createRadialGradient(0,0,2,0,0,b.r*1.8*f);g.addColorStop(0,'#fff6b0');g.addColorStop(.4,'#ff9a1a');g.addColorStop(1,'rgba(255,40,0,0)');ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,0,b.r*1.8*f,0,TAU);ctx.fill();
+    ctx.rotate(a+Math.PI);ctx.fillStyle='rgba(255,120,20,.55)';ctx.beginPath();ctx.moveTo(0,-b.r*.8);ctx.quadraticCurveTo(b.r*2.6,0,0,b.r*.8);ctx.fill()}
+  else if(b.kind==='shard'){ctx.rotate(a+G.t*6);ctx.fillStyle='#b8f4ff';ctx.strokeStyle='#0a3a5a';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(10,0);ctx.lineTo(0,-5);ctx.lineTo(-10,0);ctx.lineTo(0,5);ctx.closePath();ctx.fill();ctx.stroke()}
+  else{const g=ctx.createRadialGradient(0,0,2,0,0,b.r*1.6);g.addColorStop(0,'#fff');g.addColorStop(.45,'#c86bff');g.addColorStop(1,'rgba(120,0,200,0)');ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,0,b.r*1.6,0,TAU);ctx.fill()}
+  ctx.restore()}
+// ボスの見た目：ステージ×番号ごとに髪型を変えた「本体」と、背後に浮かぶ「スタンド」
+const BOSS_STYLE=['long','hat','pomp','curl','fringe','bob','tower','cap'],BOSS_SYM=['☠','✦','✸','♛'],BSTAND={};
+function drawBoss(e,bob){const k=e.k??e.bk??0,b=G.theme.boss[k],si=STAGES.indexOf(G.stage),key=G.stage.id+k;
+  const st=BSTAND[key]||(BSTAND[key]=mkStandSprite({col:b[2],sym:BOSS_SYM[k]},si*4+k+2));
+  const face=P.x<e.x?-1:1,fin=e.final,sc=fin?2.35:2.05,act=e.st===4||e.st===5||e.st===3;
+  // オーラ
+  ctx.globalAlpha=.25+.15*Math.sin(G.t*5);const g=ctx.createRadialGradient(e.x,e.y-20,10,e.x,e.y-20,e.r*2.2);g.addColorStop(0,hexA(b[2],.7));g.addColorStop(1,hexA(b[2],0));ctx.fillStyle=g;ctx.beginPath();ctx.arc(e.x,e.y-20,e.r*2.2,0,TAU);ctx.fill();ctx.globalAlpha=1;
+  // スタンド（技を使う時は前に乗り出す）
+  const sx=e.x-face*(act?-10:34),sy=e.y-62+bob*2+Math.sin(G.t*2.4)*4,ss=fin?1.25:1.05;ctx.save();ctx.globalAlpha=act?.95:.7;ctx.translate(sx,sy);ctx.scale(face*ss,ss);ctx.drawImage(st,-60,-74);ctx.restore();
+  // 本体
+  drawHuman(e.x,e.y+6+bob,face,e.flash>0?'#ffffff':null,sc,e.st===2?Math.sin(G.t*30):Math.sin(G.anim*5)*.6,{style:BOSS_STYLE[(si*4+k)%BOSS_STYLE.length],coat:b[1],hair:shade(b[1],-.45),acc:b[2]});
+  if(fin){ctx.fillStyle='#ffd23f';ctx.font='18px "Dela Gothic One"';ctx.textAlign='center';ctx.fillText('♛',e.x,e.y-e.r*sc*.62-6)}}
 /* ---- ボスの固有技（ステージごとに1種。突進・召喚に加えて使う） ---- */
 const hzAt=(x,y,r,t,dmg,col)=>G.hz.push({x,y,r,t,max:t,dmg,col:col||'#ff2050'});
 function bossSkill(e){const k=G.theme.skill,dmg=e.dmg*.9;e.st=0;e.stT=rnd(2,3.2);
   if(k==='quake'){for(let i=0;i<4;i++){const a=R()*TAU,d=i?rnd(60,170):0;hzAt(P.x+Math.cos(a)*d,P.y+Math.sin(a)*d,75,1,dmg)}G.shake=8;sfx('rumble')}
   else if(k==='burrow'){const a=R()*TAU;e.tx=P.x+Math.cos(a)*30;e.ty=P.y+Math.sin(a)*30;hzAt(e.tx,e.ty,100,1.1,dmg*1.2,'#d8c070');bossHide(e,1.1)}
-  else if(k==='decoy'){for(let i=0;i<3;i++){const a=i/3*TAU+R(),d=spawnE('decoy',e.x+Math.cos(a)*100,e.y+Math.sin(a)*100,'boss'+e.k);d.hp=d.max=e.max*.05}part(e.x,e.y,'#ffffff',20,300)}
+  else if(k==='decoy'){for(let i=0;i<3;i++){const a=i/3*TAU+R(),d=spawnE('decoy',e.x+Math.cos(a)*100,e.y+Math.sin(a)*100,'boss'+e.k);d.hp=d.max=e.max*.05;d.bk=e.k}part(e.x,e.y,'#ffffff',20,300)}
   else if(k==='cage'){G.cage={x:P.x,y:P.y,r:260,t:3.5,dmg:dmg*.4};bigText('檻に閉じ込められた!','red')}
   else if(k==='stampede'){e.chg=2;e.st=1;e.stT=.4;e.ca=Math.atan2(P.y-e.y,P.x-e.x)}
   else if(k==='mines'){for(let i=0;i<5;i++){const a=R()*TAU,d=rnd(0,260);hzAt(P.x+Math.cos(a)*d,P.y+Math.sin(a)*d,62,1.3,dmg*.8,'#ff6fae')}}
@@ -1870,7 +1900,7 @@ function update(rdt){
     if(G.timeStop<=0){G.timeStop=0;bigText('そして時は動き出す','cyan');sfx('tres')}}
   if(G.erase>0){G.erase-=dt;if(R()<.5)fx({t:'ghost',x:P.x,y:P.y,face:P.face,life:.4});
     if(G.erase<=0){const s=G.eraseS,r=180+12*s.lv;G.src=s;for(const e of inR(P.x,P.y,r))hurt(e,45+15*s.lv,{kb:150});fx({t:'ring',x:P.x,y:P.y,r0:20,r1:r,life:.45,col:'#ff0030',lw:10});
-      shout(P.x,P.y-60,'ドォォーン!!','#ff2050',44);G.shake=14;sfx('boom');G.src=null}}
+      shout(P.x,P.y-60,'ドォォーン!!','#ff2050',44);bigText('この世には「結果」だけが残る!!','red long');G.shake=14;sfx('boom');G.src=null}}
   // player
   let mx=0,my=0;if(keys.KeyW||keys.ArrowUp)my--;if(keys.KeyS||keys.ArrowDown)my++;if(keys.KeyA||keys.ArrowLeft)mx--;if(keys.KeyD||keys.ArrowRight)mx++;
   if(joy.on){mx+=joy.dx;my+=joy.dy}if(G.pfz>0)mx=my=0;const ml=Math.hypot(mx,my);if(ml>1){mx/=ml;my/=ml}
@@ -1940,15 +1970,16 @@ function updEnemies(dt){
       if(e.st===1){spd=0;if(e.stT<=0){e.st=2;e.stT=.55}}
       else if(e.st===2){vx=Math.cos(e.ca);vy=Math.sin(e.ca);spd=e.spd*4.4*G.eSpd;if(e.stT<=0){if(e.chg>0){e.chg--;e.st=1;e.stT=.35;e.ca=Math.atan2(dy,dx)}else{e.st=0;e.stT=rnd(2.2,3.6)}}}
       else if(e.st===4){spd=0;if(e.stT<=0)bossSkill(e)}
+      else if(e.st===5){spd=0;if(e.stT<=0){bossShot(e);e.st=0;e.stT=rnd(2,3.2)}}
       else if(e.st===3){spd*=.3;if(e.stT<=0){const n=8+e.idx*2,o=R()*TAU;for(let i=0;i<n;i++){const a=o+i/n*TAU;spawnE('bat',e.x+Math.cos(a)*70,e.y+Math.sin(a)*70)}fx({t:'ring',x:e.x,y:e.y,r0:20,r1:110,life:.4,col:'#ff2050',lw:6});e.st=0;e.stT=rnd(2.2,3.6);shout(e.x,e.y-60,'ゴゴゴ','#ff2050',36)}}
-      else if(e.stT<=0&&Math.abs(e.x-G.cx)<VW/2-40&&Math.abs(e.y-G.cy)<VH/2-40){const r=R();if(r<.4){e.st=1;e.stT=.75;e.ca=Math.atan2(dy,dx)}else if(r<.65){e.st=3;e.stT=.5}else{e.st=4;e.stT=.6;shout(e.x,e.y-70,SKILL_TXT[G.theme.skill],'#ff2050',30)}}}
+      else if(e.stT<=0&&Math.abs(e.x-G.cx)<VW/2-40&&Math.abs(e.y-G.cy)<VH/2-40){const r=R();if(r<.3){e.st=1;e.stT=.75;e.ca=Math.atan2(dy,dx)}else if(r<.45){e.st=3;e.stT=.5}else if(r<.75&&e.pw){e.st=5;e.stT=.7;shout(e.x,e.y-70,PW_TXT[e.pw],'#ffd23f',28)}else{e.st=4;e.stT=.6;shout(e.x,e.y-70,SKILL_TXT[G.theme.skill],'#ff2050',30)}}}
     e.x+=(vx*spd+e.kx)*dt;e.y+=(vy*spd+e.ky)*dt;const kd=Math.exp(-dt*8);e.kx*=kd;e.ky*=kd;
     if(e.type!=='boss'){const nb=inR(e.x,e.y,2);let c=0;for(const o of nb){if(o===e)continue;if(++c>6)break;const ox=e.x-o.x,oy=e.y-o.y,od=Math.hypot(ox,oy)||.1,ov=e.r+o.r-od;if(ov>0){e.x+=ox/od*ov*.25;e.y+=oy/od*ov*.25}}}
     if(d<e.r+P.r&&e.dmg>0&&!(e.ent>0))damageP(e.dmg);
     if(d>far&&e.type!=='boss'&&e.type!=='elite'&&e.type!=='rider'&&e.type!=='thief'){const a=Math.atan2(P.fy,P.fx)+rnd(-1.1,1.1),rr=Math.hypot(VW,VH)/2+40;e.x=P.x+Math.cos(a)*rr;e.y=P.y+Math.sin(a)*rr}
   }
   if(G.en.length>50||G.t%1<.02)G.en=G.en.filter(e=>!e.dead);
-  for(const b of G.eb){if(ts)break;b.x+=b.vx*dt;b.y+=b.vy*dt;b.life-=dt;if((b.x-P.x)**2+(b.y-P.y)**2<(b.r+P.r)**2&&G.erase<=0&&P.inv<=0){damageP(b.dmg);b.life=0}}
+  for(const b of G.eb){if(ts)break;if(b.home){const sp=Math.hypot(b.vx,b.vy),cur=Math.atan2(b.vy,b.vx),d=angDiff(Math.atan2(P.y-b.y,P.x-b.x),cur),na=cur+Math.max(-b.home*dt,Math.min(b.home*dt,d));b.vx=Math.cos(na)*sp;b.vy=Math.sin(na)*sp}b.x+=b.vx*dt;b.y+=b.vy*dt;b.life-=dt;if((b.x-P.x)**2+(b.y-P.y)**2<(b.r+P.r)**2&&G.erase<=0&&P.inv<=0){damageP(b.dmg);b.life=0}}
   G.eb=G.eb.filter(b=>b.life>0);
 }
 function updProj(dt){
@@ -2037,7 +2068,7 @@ function render(){
     if(e.type==='elite'||e.type==='boss'){ctx.globalAlpha=.35+.15*Math.sin(G.t*6);ctx.fillStyle=e.type==='boss'?'#ff2050':'#ffd23f';ctx.beginPath();ctx.ellipse(e.x,e.y+e.r*.8,e.r*1.2,e.r*.45,0,0,TAU);ctx.fill();ctx.globalAlpha=1}
     else{ctx.fillStyle='rgba(0,0,0,.35)';ctx.beginPath();ctx.ellipse(e.x,e.y+e.r*.85,e.r*.8,e.r*.28,0,0,TAU);ctx.fill()}
     if(e.weak>0){ctx.strokeStyle='rgba(200,120,255,.8)';ctx.lineWidth=2;ctx.beginPath();ctx.arc(e.x,e.y,e.r+4,0,TAU);ctx.stroke()}
-    ctx.drawImage(e.flash>0?s.f:s.n,e.x-s.s/2,e.y-s.s/2+bob);if(e.type==='thief')ctx.drawImage(GEMSPR[4],e.x-20,e.y-e.r-34+bob);
+    if(e.type==='boss'||(e.type==='decoy'&&e.bk!==undefined))drawBoss(e,bob);else ctx.drawImage(e.flash>0?s.f:s.n,e.x-s.s/2,e.y-s.s/2+bob);if(e.type==='thief')ctx.drawImage(GEMSPR[4],e.x-20,e.y-e.r-34+bob);
     if(e.bomb>0){ctx.save();ctx.translate(e.x,e.y-e.r-12);ctx.scale(1+.2*Math.sin(G.t*30),1+.2*Math.sin(G.t*30));ctx.fillStyle='#ff6fae';ctx.strokeStyle='#000';ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,0,8,0,TAU);ctx.fill();ctx.stroke();
       ctx.fillStyle='#000';ctx.font='10px "Dela Gothic One"';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('爆',0,1);ctx.restore()}
     if(e.stun>0||e.stick>0||e.echo>0||e.dive>0){ctx.font='11px "Dela Gothic One"';ctx.textAlign='center';ctx.textBaseline='middle';ctx.lineWidth=3;ctx.strokeStyle='#000';const ty=e.y-e.r-10;
@@ -2055,7 +2086,7 @@ function render(){
   // projectiles
   ctx.lineCap='round';
   for(const p of G.pr){if(!vis(p.x,p.y))continue;drawProj(p)}
-  for(const b of G.eb){if(!vis(b.x,b.y))continue;ctx.fillStyle='#b84dff';ctx.beginPath();ctx.arc(b.x,b.y,b.r+3,0,TAU);ctx.fill();ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(b.x,b.y,b.r-2,0,TAU);ctx.fill()}
+  for(const b of G.eb){if(!vis(b.x,b.y))continue;if(b.kind){drawEB(b);continue}ctx.fillStyle='#b84dff';ctx.beginPath();ctx.arc(b.x,b.y,b.r+3,0,TAU);ctx.fill();ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(b.x,b.y,b.r-2,0,TAU);ctx.fill()}
   // fx
   for(const f of G.fx)drawFx(f);
   // particles
