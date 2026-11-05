@@ -319,6 +319,8 @@ body.noflash .flash,body.noflash .cflash{display:none}
 .hcl{font-style:normal;color:#ff3355;text-shadow:0 0 8px #ff0030}
 #hardBtn{margin:4px 0 6px;font-size:15px}#hardBtn.on{background:linear-gradient(135deg,#ff0030,#ff8a00);color:#fff}
 #hardTxt{color:#ff8a9a!important}
+#endBtn{margin:0 0 6px;font-size:15px}#endBtn.on{background:linear-gradient(135deg,#6a00ff,#00c8ff);color:#fff}
+#endTxt{color:#9fe0ff!important}
 #slist.hard .stg{box-shadow:6px 6px 0 #000,0 0 0 3px #ff0030 inset,0 0 24px rgba(255,0,48,.5)}
 #gim{font-size:11px;color:#ffd23f;text-shadow:2px 2px 0 #000;min-height:14px}#gim .hd{color:#ff3355}
 /* synergy */
@@ -558,6 +560,7 @@ a.bigbtn.more{background:linear-gradient(135deg,#1a4a8a,#3d6bff);font-size:clamp
 <div id="stages" class="ov hidden"><div class="rays"></div><div class="inner">
   <h2>SELECT STAGE</h2><div class="sub" id="schar"></div><div class="money">所持マネー <b id="smoney">◎ 0</b></div>
   <button class="bigbtn sub hidden" id="hardBtn"></button><div class="sub hidden" id="hardTxt">HARD MODE ─ 敵HP×1.8・攻撃×1.5・出現×1.25　代わりに獲得マネー×2</div>
+  <button class="bigbtn sub hidden" id="endBtn"></button><div class="sub hidden" id="endTxt"></div>
   <div id="slist"></div><button class="bigbtn sub back" id="stageBack">キャラ選択へ</button></div>
 </div>
 
@@ -844,10 +847,10 @@ function checkCharUnlocks(){for(const c of CHARS){if(isUnlocked(c))continue;cons
 const standUnlocked=id=>SAVE.stands.includes(id);
 
 const GROUND={};
-function newGame(ch,stg,hard){
+function newGame(ch,stg,hard,endless){
   ch=ch||G.ch||CHARS[0];G.stage=stg?stageOf(stg):(G.stage||STAGES[0]);const md=charMods(ch);G.md=md;
   // ステージ専用の見た目・ギミック状態／ハードモード
-  G.hard=!!hard;G.theme=themeOf(G.stage.id);G.gim=G.theme.gim;G.spr=stageSpr(G.stage.id);
+  G.hard=!!hard&&!endless;G.endless=!!endless;G.nextBoss=120;G.bossN=0;G.theme=themeOf(G.stage.id);G.gim=G.theme.gim;G.spr=stageSpr(G.stage.id);
   Object.assign(G,{hz:[],spots:[],mines:[],cage:null,storm:0,stormNext:45,thiefNext:30,relicNext:25,arena:0,arenaNext:60,alarm:0,alarmCd:0,lightA:0,lx:0,ly:0,buffT:0,accelT:0,pfz:0,eSpd:1,uSeen:false,achT:1,run:{},finalKilled:false});
   Object.assign(G,{ch,dmgMul:md.dmg||1,xpMul:md.xp||1,state:'title',t:0,kills:0,lv:1,xp:0,need:xpNeed(1),pend:0,en:[],pr:[],eb:[],zn:[],gm:[],pt:[],dn:[],sh:[],fx:[],st:[],
     timeStop:0,tsMax:0,tsSec:0,erase:0,eraseS:null,shake:0,hurtF:0,cdMul:1,spdMul:1,magR:80,spawnAcc:0,nextElite:40,nextWave:60,bossIdx:0,boss:null,bossKills:0,bonus:BONUS0(),gold:0,banked:false,cutQ:[],dmgTaken:1,weakMul:1.3,goldMul:1,synAct:{},synDirty:true,tsBonus:0,tsDmg:0,items:[],maskT:0,warnT:999,src:null,banMode:false,
@@ -1374,9 +1377,11 @@ function drawProps(L,T,Rr,B){const st=G.theme&&G.theme.bg;if(!st)return;const ps
 
 // ハードモード：敵HP×1.8・攻撃×1.5・出現×1.25（代わりに獲得マネー×2）
 const HARD={hp:1.8,atk:1.5,spn:1.25,gold:2};
-function hpScale(){const m=G.t/40;return(1+m*.34+m*m*.04)*DIFF.hp*G.stage.hp*(G.hard?HARD.hp:1)}
+// エンドレス：5分を過ぎると敵のHP・防御・攻撃が二次関数的に伸び続ける（時間停止でも押し切れなくなる）
+const endX=()=>G.endless?Math.max(0,G.t-300)/300:0,endArm=()=>G.endless?Math.min(.6,(G.t/1200)**2*.6):0;
+function hpScale(){const m=G.t/40;return(1+m*.34+m*m*.04)*DIFF.hp*G.stage.hp*(G.hard?HARD.hp:1)*(1+endX()**2)}
 function spawnPos(){const a=R()*TAU,rr=Math.hypot(VW,VH)/2+40;return[P.x+Math.cos(a)*rr,P.y+Math.sin(a)*rr]}
-function spawnE(type,x,y,sprKey){const b=ET[type],m=hpScale(),k=sprKey||type,e={type,x,y,r:b.r,hp:b.hp*m,spd:b.spd*rnd(.9,1.1),dmg:b.dmg*DIFF.atk*G.stage.atk*(1+G.t/360)*(G.hard?HARD.atk:1),armor:b.armor,spr:(G.spr&&G.spr[k])||SPR[k],
+function spawnE(type,x,y,sprKey){const b=ET[type],m=hpScale(),k=sprKey||type,e={type,x,y,r:b.r,hp:b.hp*m,spd:b.spd*rnd(.9,1.1),dmg:b.dmg*DIFF.atk*G.stage.atk*(1+G.t/360)*(G.hard?HARD.atk:1)*(1+(endX()/2)**2),armor:Math.min(.85,b.armor+endArm()),spr:(G.spr&&G.spr[k])||SPR[k],
   flash:0,weak:0,bomb:0,kx:0,ky:0,ph:R()*TAU,st:0,stT:rnd(1.5,3),sht:rnd(1,2.5)};e.max=e.hp;G.en.push(e);return e}
 function pickType(){const m=G.t/60,r=R();if(m>2&&r<.2)return'brute';if(m>1&&r<.5)return'bat';return'ghoul'}
 // 通常湧き：一定確率でステージ専用の敵に置き換わる
@@ -1385,7 +1390,10 @@ function spawnUniq(x,y){const u=G.theme.ue;if(!G.uSeen){G.uSeen=true;shout(P.x,P
   if(u==='pack'){for(let i=0;i<4;i++)spawnE('pack',x+rnd(-40,40),y+rnd(-40,40),'uniq');return}
   const e=spawnE(u,x,y,'uniq');if(u==='rider'){const a=Math.atan2(P.y-y,P.x-x);e.rvx=Math.cos(a);e.rvy=Math.sin(a);e.spd=230;e.lt=5}}
 // ボスは画面外の遠くに出現し、WARNING 表示（3秒）が消えるまで画面の外で待つ
-function spawnBoss(k){const a=R()*TAU,rr=Math.hypot(VW,VH)/2+260,x=P.x+Math.cos(a)*rr,y=P.y+Math.sin(a)*rr,b=G.theme.boss[k],fin=k===3,e=spawnE('boss',x,y,'boss'+k);e.ent=3.2;e.st=0;e.stT=rnd(1,1.8);e.minT=fin?45:30;e.bud=e.max/e.minT;e.pw=BOSS_PW[(STAGES.indexOf(G.stage)+k)%BOSS_PW.length];e.hp=e.max=1600*hpScale()*(fin?1.2:k===0?.5:.7)*(1-.08*Math.max(0,STAGES.indexOf(G.stage)-3));e.name=b[0];e.k=k;e.idx=[0,2,3,4][k];e.final=fin;G.boss=e;
+// si を渡すと別ステージのボスを呼べる（エンドレスの歴代ボス）
+function spawnBoss(k,si){si=si??STAGES.indexOf(G.stage);const th=themeOf(STAGES[si].id),a=R()*TAU,rr=Math.hypot(VW,VH)/2+260,x=P.x+Math.cos(a)*rr,y=P.y+Math.sin(a)*rr,b=th.boss[k],fin=k===3,e=spawnE('boss',x,y,'boss'+k);
+  e.ent=3.2;e.st=0;e.stT=rnd(1,1.8);e.minT=fin?45:30;e.bth=th;e.bsi=si;e.skill=th.skill;e.pw=BOSS_PW[(si+k)%BOSS_PW.length];
+  e.hp=e.max=1600*hpScale()*(fin?1.2:k===0?.5:.7)*(G.endless?1:1-.08*Math.max(0,si-3));e.bud=e.max/e.minT;e.name=b[0];e.k=k;e.idx=[0,2,3,4][k];e.final=fin;G.boss=e;
   $('wname').textContent=b[0];const w=$('warn');w.classList.remove('show');void w.offsetWidth;w.classList.add('show');setTimeout(()=>w.classList.remove('show'),3000);sfx('boss');G.shake=12}
 
 /* ---- ボスの飛び道具（ボスごとに1種）：ナイフの扇投げ・炎の弾・結晶の全方位・追尾する念弾 ----
@@ -1407,7 +1415,7 @@ function drawEB(b){ctx.save();ctx.translate(b.x,b.y);const a=Math.atan2(b.vy,b.v
   ctx.restore()}
 // ボスの見た目：ステージ×番号ごとに髪型を変えた「本体」と、背後に浮かぶ「スタンド」
 const BOSS_STYLE=['long','hat','pomp','curl','fringe','bob','tower','cap'],BOSS_SYM=['☠','✦','✸','♛'],BSTAND={};
-function drawBoss(e,bob){const k=e.k??e.bk??0,b=G.theme.boss[k],si=STAGES.indexOf(G.stage),key=G.stage.id+k;
+function drawBoss(e,bob){const k=e.k??e.bk??0,b=(e.bth||G.theme).boss[k],si=e.bsi??STAGES.indexOf(G.stage),key=STAGES[si].id+k;
   const st=BSTAND[key]||(BSTAND[key]=mkStandSprite({col:b[2],sym:BOSS_SYM[k]},si*4+k+2));
   const face=P.x<e.x?-1:1,fin=e.final,sc=fin?2.35:2.05,act=e.st===4||e.st===5||e.st===3;
   // オーラ
@@ -1419,10 +1427,10 @@ function drawBoss(e,bob){const k=e.k??e.bk??0,b=G.theme.boss[k],si=STAGES.indexO
   if(fin){ctx.fillStyle='#ffd23f';ctx.font='18px "Dela Gothic One"';ctx.textAlign='center';ctx.fillText('♛',e.x,e.y-e.r*sc*.62-6)}}
 /* ---- ボスの固有技（ステージごとに1種。突進・召喚に加えて使う） ---- */
 const hzAt=(x,y,r,t,dmg,col)=>G.hz.push({x,y,r,t,max:t,dmg,col:col||'#ff2050'});
-function bossSkill(e){const k=G.theme.skill,dmg=e.dmg*.9;e.st=0;e.stT=rnd(2,3.2);
+function bossSkill(e){const k=e.skill||G.theme.skill,dmg=e.dmg*.9;e.st=0;e.stT=rnd(2,3.2);
   if(k==='quake'){for(let i=0;i<4;i++){const a=R()*TAU,d=i?rnd(60,170):0;hzAt(P.x+Math.cos(a)*d,P.y+Math.sin(a)*d,75,1,dmg)}G.shake=8;sfx('rumble')}
   else if(k==='burrow'){const a=R()*TAU;e.tx=P.x+Math.cos(a)*30;e.ty=P.y+Math.sin(a)*30;hzAt(e.tx,e.ty,100,1.1,dmg*1.2,'#d8c070');bossHide(e,1.1)}
-  else if(k==='decoy'){for(let i=0;i<3;i++){const a=i/3*TAU+R(),d=spawnE('decoy',e.x+Math.cos(a)*100,e.y+Math.sin(a)*100,'boss'+e.k);d.hp=d.max=e.max*.05;d.bk=e.k}part(e.x,e.y,'#ffffff',20,300)}
+  else if(k==='decoy'){for(let i=0;i<3;i++){const a=i/3*TAU+R(),d=spawnE('decoy',e.x+Math.cos(a)*100,e.y+Math.sin(a)*100,'boss'+e.k);d.hp=d.max=e.max*.05;d.bk=e.k;d.bth=e.bth;d.bsi=e.bsi}part(e.x,e.y,'#ffffff',20,300)}
   else if(k==='cage'){G.cage={x:P.x,y:P.y,r:260,t:3.5,dmg:dmg*.4};bigText('檻に閉じ込められた!','red')}
   else if(k==='stampede'){e.chg=2;e.st=1;e.stT=.4;e.ca=Math.atan2(P.y-e.y,P.x-e.x)}
   else if(k==='mines'){for(let i=0;i<5;i++){const a=R()*TAU,d=rnd(0,260);hzAt(P.x+Math.cos(a)*d,P.y+Math.sin(a)*d,62,1.3,dmg*.8,'#ff6fae')}}
@@ -1531,14 +1539,18 @@ function showChars(){initAudio();$('title').classList.add('hidden');$('over').cl
   $('cmoney').textContent='◎ '+SAVE.money.toLocaleString();
   $('chars').classList.remove('hidden');sfx('lvl')}
 /* ---- ステージ選択：クリアで次が購入可能に → マネーで解放 ---- */
-let stageCh=null,stageHard=false;
+let stageCh=null,stageHard=false,stageEndless=false;
 const stageOwned=s=>SAVE.stages.includes(s.id),stageBuyable=(s,i)=>!stageOwned(s)&&i>0&&SAVE.cleared.includes(STAGES[i-1].id);
 const allClear=()=>STAGES.every(s=>SAVE.cleared.includes(s.id));
-$('hardBtn').onclick=()=>{stageHard=!stageHard;showStages(stageCh);sfx(stageHard?'boss':'tick')};
+$('hardBtn').onclick=()=>{stageHard=!stageHard;if(stageHard)stageEndless=false;showStages(stageCh);sfx(stageHard?'boss':'tick')};
+$('endBtn').onclick=()=>{stageEndless=!stageEndless;if(stageEndless)stageHard=false;showStages(stageCh);sfx(stageEndless?'boss':'tick')};
 function showStages(ch){stageCh=ch;$('chars').classList.add('hidden');G.state='stages';
   // 全ステージクリア後はハードモードを選べる
   const hu=allClear();if(!hu)stageHard=false;$('hardBtn').classList.toggle('hidden',!hu);$('hardBtn').classList.toggle('on',stageHard);$('hardBtn').textContent=`HARD MODE：${stageHard?'ON':'OFF'}`;
   $('hardTxt').classList.toggle('hidden',!stageHard);$('slist').classList.toggle('hard',stageHard);
+  // エンドレス：全ステージクリア後に解放。好きなステージの景色で、時間無制限・2分ごとに歴代ボス
+  if(!hu)stageEndless=false;$('endBtn').classList.toggle('hidden',!hu);$('endBtn').classList.toggle('on',stageEndless);$('endBtn').textContent=`∞ ENDLESS MODE：${stageEndless?'ON':'OFF'}`;
+  $('endTxt').classList.toggle('hidden',!stageEndless);$('endTxt').textContent=`時間無制限・2分ごとに歴代ボス・5分を過ぎると敵が加速度的に強化　最高記録 ${fmt(SAVE.endBest||0)}`;
   $('smoney').textContent='◎ '+SAVE.money.toLocaleString();$('schar').textContent=`出撃：${ch.name}`;
   $('slist').innerHTML=STAGES.map((s,i)=>{const own=stageOwned(s),buy=stageBuyable(s,i),clr=SAVE.cleared.includes(s.id),fd=s.npc.filter(id=>SAVE.found.includes(id)).length;
     const stars='★'.repeat(Math.min(5,1+Math.floor(i/2)))+'☆'.repeat(Math.max(0,4-Math.floor(i/2)));
@@ -1551,13 +1563,13 @@ function showStages(ch){stageCh=ch;$('chars').classList.add('hidden');G.state='s
   [...$('slist').children].forEach(el=>el.onclick=()=>pickStage(+el.dataset.i));
   $('stages').classList.remove('hidden');sfx('tick')}
 function pickStage(i){const s=STAGES[i],el=$('slist').children[i];
-  if(stageOwned(s)){$('stages').classList.add('hidden');startGame(stageCh,s.id,stageHard&&allClear());return}
+  if(stageOwned(s)){$('stages').classList.add('hidden');startGame(stageCh,s.id,stageHard&&allClear(),stageEndless&&allClear());return}
   if(!stageBuyable(s,i)||SAVE.money<s.price){el.classList.remove('nope');void el.offsetWidth;el.classList.add('nope');sfx('hurt');return}
   if(!el.classList.contains('confirm')){[...$('slist').children].forEach(x=>x.classList.remove('confirm'));el.classList.add('confirm');el.querySelector('.sst').textContent='もう一度タップで解放！';sfx('tick');return}
   SAVE.money-=s.price;SAVE.stages.push(s.id);saveData();sfx('gold');bigText(`STAGE ${i+1} 解放!!`,'gold');showStages(stageCh)}
-function startGame(ch,stg,hard){initAudio();newGame(ch,stg,hard);$('chars').classList.add('hidden');$('stages').classList.add('hidden');$('title').classList.add('hidden');$('over').classList.add('hidden');$('hud').classList.remove('hidden');
-  const d=DEFS.find(x=>x.id===G.ch.stand),s0=mkStand(d);s0.lv=1+(G.ch.boost||0)+((SAVE.cm[G.ch.id]||0)>=3?1:0);G.st.push(s0);recalc();G.slotDirty=true;cutin(d,'new');$('ctype').textContent=`${G.ch.name} ─ ${G.hard?'【HARD】':''}STAGE ${STAGES.indexOf(G.stage)+1}「${G.stage.name}」へ出陣！`}
-$('startBtn').onclick=showChars;$('retryBtn').onclick=()=>startGame(G.ch,G.stage.id,G.hard);$('charBack').onclick=()=>{$('chars').classList.add('hidden');showTitle()};
+function startGame(ch,stg,hard,endless){initAudio();newGame(ch,stg,hard,endless);$('chars').classList.add('hidden');$('stages').classList.add('hidden');$('title').classList.add('hidden');$('over').classList.add('hidden');$('hud').classList.remove('hidden');
+  const d=DEFS.find(x=>x.id===G.ch.stand),s0=mkStand(d);s0.lv=1+(G.ch.boost||0)+((SAVE.cm[G.ch.id]||0)>=3?1:0);G.st.push(s0);recalc();G.slotDirty=true;cutin(d,'new');$('ctype').textContent=G.endless?`${G.ch.name} ─ 【ENDLESS】「${G.stage.name}」へ出陣！`:`${G.ch.name} ─ ${G.hard?'【HARD】':''}STAGE ${STAGES.indexOf(G.stage)+1}「${G.stage.name}」へ出陣！`}
+$('startBtn').onclick=showChars;$('retryBtn').onclick=()=>startGame(G.ch,G.stage.id,G.hard,G.endless);$('charBack').onclick=()=>{$('chars').classList.add('hidden');showTitle()};
 $('stageBack').onclick=()=>{$('stages').classList.add('hidden');showChars()};
 const btnRow=$('retryBtn').parentNode,chBtn=document.createElement('button');chBtn.className='bigbtn sub';chBtn.textContent='キャラ選択';chBtn.onclick=showChars;btnRow.insertBefore(chBtn,$('toTitleBtn'));
 $('toTitleBtn').onclick=()=>{$('over').classList.add('hidden');$('hud').classList.add('hidden');newGame();showTitle()};
@@ -1757,8 +1769,11 @@ function drawChest(c){const b=Math.sin(G.t*4)*3,p=.5+.2*Math.sin(G.t*6);ctx.save
   const sh=((G.t*1.2)%2)-1;ctx.globalAlpha=.7;ctx.strokeStyle='#fff';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(sh*14-6,-20+sh*10);ctx.lineTo(sh*14+4,-6+sh*10);ctx.stroke();ctx.globalAlpha=1;
   ctx.restore()}
 
-function gameOver(){if(G.state==='over')return;G.state='over';bankGold();sfx('over');cv.classList.add('sepia');joy.on=false;$('joy').classList.add('hidden');saveBest();
-  setTimeout(()=>{$('overHead').innerHTML='<div id="tbc">To Be Continued</div>';showStats();$('over').classList.remove('hidden')},1100)}
+function gameOver(){if(G.state==='over')return;G.state='over';
+  // エンドレスは倒れた時点の生存時間を記録
+  const eRec=G.endless&&G.t>(SAVE.endBest||0);if(eRec)SAVE.endBest=Math.floor(G.t);
+  bankGold();sfx('over');cv.classList.add('sepia');joy.on=false;$('joy').classList.add('hidden');saveBest();
+  setTimeout(()=>{$('overHead').innerHTML='<div id="tbc">To Be Continued</div>'+(G.endless?`<div class="nextst">∞ ENDLESS ─ 生存 ${fmt(G.t)}　ボス撃破 ${G.bossKills}　${eRec?'★ NEW RECORD ★':'最高記録 '+fmt(SAVE.endBest||0)}</div>`:'');showStats();$('over').classList.remove('hidden')},1100)}
 // 10:00まで生存でクリア。ただしステージ5以降（各部のボスが登場）は 8:00 のラスボスを倒さないとクリアにならない
 const needFinal=si=>si>=4;
 function win(){G.state='win';sfx('win');saveBest();const si=STAGES.indexOf(G.stage),nx=STAGES[si+1],ok=G.finalKilled||!needFinal(si),first=ok&&!SAVE.cleared.includes(G.stage.id),wasAll=allClear();if(first)SAVE.cleared.push(G.stage.id);
@@ -1892,7 +1907,7 @@ const SPEED=1.3; // ゲーム全体の基本進行速度（×設定のゲーム�
 function update(rdt){
   const dt=rdt*SPEED;
   G.t+=rdt;G.anim+=G.timeStop>0?0:dt;
-  if(G.t>=STAGE_TIME){G.t=STAGE_TIME;win();return}
+  if(G.t>=STAGE_TIME&&!G.endless){G.t=STAGE_TIME;win();return}
   // 実績用のカウント（1秒ごとに判定）
   if((G.achT-=rdt)<=0){G.achT=1;cntMax('bestKills',G.kills);cntMax('bestLv',G.lv);cntMax('aw6',G.st.filter(s=>s.aw).length);checkAch()}
   // time stop / erase
@@ -1919,7 +1934,9 @@ function update(rdt){
     while(G.spawnAcc>=1){G.spawnAcc--;if(G.en.length<cap){const[x,y]=spawnPos();spawnUnit(x,y)}}
     if(G.t>=G.nextWave){G.nextWave+=60;const n=Math.min(150,58+m*12.8),tp=m>4?'bat':'ghoul',rr=Math.hypot(VW,VH)/2+30;for(let i=0;i<n;i++){const a=i/n*TAU;spawnE(tp,P.x+Math.cos(a)*rr,P.y+Math.sin(a)*rr)}shout(P.x,P.y-90,'ドドドドド','#a94dff',40)}
     if(G.t>=G.nextElite){G.nextElite+=Math.max(25,40-m*1.2);const[x,y]=spawnPos();spawnE('elite',x,y)}
-    if(G.bossIdx<BOSS_T.length&&G.t>=BOSS_T[G.bossIdx]){spawnBoss(G.bossIdx);G.bossIdx++}
+    // エンドレス：2分ごとに歴代ボス（STAGE1〜9 を順に巡り、一周ごとに中ボス→ラスボスへ格上げ）
+    if(G.endless){if(G.t>=G.nextBoss){G.nextBoss+=120;const n=G.bossN++;spawnBoss(Math.floor(n/STAGES.length)%4,n%STAGES.length)}}
+    else if(G.bossIdx<BOSS_T.length&&G.t>=BOSS_T[G.bossIdx]){spawnBoss(G.bossIdx);G.bossIdx++}
   }
   buildGrid();
   updEnemies(dt);
@@ -1937,7 +1954,7 @@ function update(rdt){
   for(const c of G.secrets){if((c.pos.x-P.x)**2+(c.pos.y-P.y)**2<38*38){meetSecret(c);return}}
   updMasks(dt);updItems(dt);updGim(dt,rdt);
   // 残り時間の警告
-  const rem=STAGE_TIME-G.t;if(rem<=30&&G.warnT>30){bigText('残り30秒!!','red');sfx('boss')}if(rem<=10&&Math.ceil(rem)<Math.ceil(G.warnT)){bigText(String(Math.ceil(rem)),'gold')}G.warnT=rem;
+  const rem=G.endless?999:STAGE_TIME-G.t;if(rem<=30&&G.warnT>30){bigText('残り30秒!!','red');sfx('boss')}if(rem<=10&&Math.ceil(rem)<Math.ceil(G.warnT)){bigText(String(Math.ceil(rem)),'gold')}G.warnT=rem;
   while(G.xp>=G.need){G.xp-=G.need;G.lv++;G.need=xpNeed(G.lv);G.pend++}
   if(G.pend>0&&G.state==='play')openChoice(false);
 }
@@ -2215,7 +2232,7 @@ function hud(){
   $('goldv').textContent='◎ '+Math.floor(G.gold);
   // ギミック・ハードモードの状態表示
   const gs=[];if(G.hard)gs.push('<b class="hd">HARD</b>');if(G.storm>0)gs.push(`砂嵐 ${Math.ceil(G.storm)}s`);if(G.arena>0)gs.push(`闘技場 残り${Math.ceil(G.arena)}s`);if(G.buffT>0)gs.push(`遺物の力 ${Math.ceil(G.buffT)}s`);
-  if(G.alarm>0)gs.push('警報!!');if(G.gim==='accel'||G.accelT>0)gs.push(`敵速度 ×${G.eSpd.toFixed(2)}`);$('gim').innerHTML=gs.join('　');  $('timer').textContent=fmt(G.t);$('kills').innerHTML='撃破 '+G.kills+(G.bossIdx<BOSS_T.length?`<span>　BOSS ${fmt(BOSS_T[G.bossIdx])}</span>`:'');
+  if(G.alarm>0)gs.push('警報!!');if(G.gim==='accel'||G.accelT>0)gs.push(`敵速度 ×${G.eSpd.toFixed(2)}`);$('gim').innerHTML=gs.join('　');  $('timer').textContent=fmt(G.t);$('kills').innerHTML='撃破 '+G.kills+(G.endless?`<span>　BOSS ${fmt(G.nextBoss)}</span>`:G.bossIdx<BOSS_T.length?`<span>　BOSS ${fmt(BOSS_T[G.bossIdx])}</span>`:'');
   if(G.synDirty){G.synDirty=false;const RN=['Ⅰ','Ⅱ','Ⅲ'];$('syn').innerHTML=Object.keys(G.synAct).map(id=>{const y=SYN.find(s=>s.id===id);return`<span class="stag on" style="--c:${y.col}">${y.tag} ${RN[G.synAct[id]]}</span>`}).join('')}
   if(G.slotDirty){G.slotDirty=false;let h='';for(let i=0;i<6;i++){const s=G.st[i];h+=s?`<div class="slot ${s.aw?'max':s.lv===MAXLV?'mx':''}" style="--c:${s.def.col}"><img src="${s.def.img}" alt=""><div class="sl">${s.aw?'覚醒':s.lv===MAXLV?'MAX':'Lv'+s.lv}</div></div>`:'<div class="slot empty"></div>'}$('slots').innerHTML=h;
     // スマホ幅でスロットが2段になってもシナジー表示が重ならないよう、スロットの直下に置く
