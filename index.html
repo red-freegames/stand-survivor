@@ -22,6 +22,21 @@
 html,body{width:100%;height:100%;overflow:hidden;background:var(--ink);color:#fff;font-family:"Dela Gothic One","Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;touch-action:none;overscroll-behavior:none}
 canvas#c{position:fixed;left:0;top:0;width:100%;height:100%;display:block;transition:filter 1.2s}
 canvas#c.sepia{filter:sepia(1) contrast(1.15) brightness(.75)}
+/* 復活演出：画面をモノクロにして時を止め、心電図と鼓動の文字を出す */
+canvas#c.revive{filter:grayscale(1) contrast(1.2) brightness(.55);transition:filter .3s}
+#revOv{position:fixed;inset:0;z-index:15;pointer-events:none;display:none;align-items:center;justify-content:center;flex-direction:column;background:radial-gradient(ellipse,transparent 25%,rgba(60,0,10,.6))}
+#revOv.show{display:flex}
+#revOv svg{position:absolute;left:0;right:0;top:50%;width:100%;height:120px;transform:translateY(-50%);overflow:visible}
+#revOv path{fill:none;stroke:#ff3355;stroke-width:3;stroke-linejoin:round;filter:drop-shadow(0 0 6px #ff3355);stroke-dasharray:1400;stroke-dashoffset:1400;animation:ecg 3.4s linear forwards}
+#revOv.back path{stroke:#ffd23f;filter:drop-shadow(0 0 10px #ffd23f)}
+#revOv.flat{background:radial-gradient(ellipse,transparent 15%,rgba(0,0,0,.8))}
+@keyframes ecg{to{stroke-dashoffset:0}}
+#revTx{position:relative;margin-top:-150px;font-size:clamp(40px,9vw,90px);color:#fff;-webkit-text-stroke:2px #000;text-shadow:6px 6px 0 #000;opacity:0}
+#revTx.on{opacity:1}
+#revTx.beat.on{animation:beat .5s ease-out}
+#revTx.flat{color:#888}
+#revTx.back{color:#ffd23f;text-shadow:6px 6px 0 #000,0 0 40px #ffd23f;animation:lvin .6s cubic-bezier(.2,1.8,.4,1)}
+@keyframes beat{0%{transform:scale(1.5)}30%{transform:scale(.95)}100%{transform:scale(1)}}
 .hidden{display:none!important}
 .en{font-family:Anton,Impact,sans-serif;letter-spacing:.04em}
 button{font-family:inherit;cursor:pointer;border:0;color:#fff}
@@ -514,6 +529,7 @@ a.bigbtn.more{background:linear-gradient(135deg,#1a4a8a,#3d6bff);font-size:clamp
 </div>
 <div id="joy" class="hidden"><div id="knob"></div></div>
 <div id="fxl"></div>
+<div id="revOv"><svg viewBox="0 0 800 100" preserveAspectRatio="none"><path d="M0,50 L75,50 L90,18 L105,84 L120,50 L240,50 L255,18 L270,84 L285,50 L590,50 L605,2 L620,98 L635,50 L800,50"/></svg><div id="revTx"></div></div>
 <div id="warn"><div class="wbg"></div><div class="row" style="top:8%">ゴゴゴゴゴゴゴゴゴゴゴゴゴゴゴゴ</div><div class="row b" style="top:72%">ゴゴゴゴゴゴゴゴゴゴゴゴゴゴゴゴ</div><div class="wname"><small>WARNING ─ BOSS</small><b id="wname"></b></div></div>
 
 <div id="title" class="ov">
@@ -626,6 +642,7 @@ function sfx(n){if(!AC||muted)return;if(AC.state==='suspended')AC.resume();const
   case'hit':nz(.06,.22,'highpass',1600);tone(170,.05,'square',.05,80);break;
   case'shot':tone(880,.05,'square',.03,330);break;
   case'boom':nz(.35,.45,'lowpass',520);tone(95,.3,'sine',.3,30);break;
+  case'beat':tone(62,.14,'sine',.6,38);tone(56,.16,'sine',.45,34,.2);break;
   case'pick':tone(1100+R()*500,.05,'sine',.06,1900);break;
   case'lvl':[523,659,784,1046].forEach((f,i)=>tone(f,.18,'triangle',.16,0,i*.07));break;
   case'cut':nz(.45,.3,'bandpass',2200);tone(160,.45,'sawtooth',.1,900);break;
@@ -887,7 +904,19 @@ function damageP(d){if(P.inv>0||G.erase>0||G.state!=='play')return;
   d=Math.max(1,Math.round(d*G.dmgTaken*(aw('parallel')?.5:1)*(aw('diver')?.75:1)));
   if(aw('door')){for(const e of inR(P.x,P.y,220))if(!e.prop){e.stun=Math.max(e.stun||0,5);fx({t:'page',x:e.x,y:e.y-e.r,life:.6})}shout(P.x,P.y-60,'安全装置!','#ffe066',26)}P.hp-=d;P.inv=.5;G.shake=Math.max(G.shake,8);G.hurtF=.35;sfx('hurt');numText(P.x,P.y-24,d,'#ff3355',true);
   const gl=aw('golden');if(gl){G.src=gl;explode(P.x,P.y,150,60+15*gl.lv,'#ffcc33',1);shout(P.x,P.y-60,'無駄ァッ!!','#ffcc33',30);gl.vis=.6;G.src=null}
-  if(P.hp<=0){const dm=aw('diamond');if(dm&&!(dm.revT>0)){dm.revT=60;P.hp=P.max*.6;P.inv=1.5;bigText('完全修復!!','pink');part(P.x,P.y,'#ff7ac8',24,200,4,.6);return}if(P.rev>0){P.rev--;P.hp=P.max*.5;P.inv=2;bigText('まだだッ!! ─ 復活','gold');explode(P.x,P.y,220,200,'#ffd23f');G.shake=16;return}P.hp=0;gameOver()}}
+  if(P.hp<=0){const dm=aw('diamond');if(dm&&!(dm.revT>0)){dm.revT=60;P.hp=P.max*.6;P.inv=1.5;bigText('完全修復!!','pink');part(P.x,P.y,'#ff7ac8',24,200,4,.6);return}if(P.rev>0){P.rev--;P.hp=1;startRevive();return}P.hp=0;gameOver()}}
+/* ---- 復活演出：一度倒れたら時を止め、鼓動が止まり…再び動き出して復活する（その間は全てが停止） ---- */
+const REV_T=3.4;
+function startRevive(){G.state='revive';G.revT=0;G.revT0=performance.now();G.revStep=0;joy.on=false;$('joy').classList.add('hidden');G.shake=0;
+  cv.classList.add('revive');const o=$('revOv');o.className='show';$('revTx').textContent='';sfx('tstop')}
+// 演出は実時間で進める（フレームが落ちても CSS の心電図とずれないように）
+function updRevive(){G.revT=(performance.now()-G.revT0)/1000;const t=G.revT,o=$('revOv'),tx=$('revTx'),st=[.35,1.05,1.75,2.55];
+  while(G.revStep<st.length&&t>=st[G.revStep]){const k=G.revStep++;
+    if(k<2){tx.textContent='ドクン…';tx.className='beat';void tx.offsetWidth;tx.className='beat on';sfx('beat')}
+    else if(k===2){tx.textContent='…………';tx.className='flat on';o.classList.add('flat')}
+    else{tx.textContent='まだだッ!!';tx.className='back on';o.classList.remove('flat');o.classList.add('back');sfx('beat');sfx('gold')}}
+  if(t>=REV_T){o.className='';tx.className='';cv.classList.remove('revive');G.state='play';
+    P.hp=P.max*.5;P.inv=2.5;bigText('復活 ─ 黄金の精神は死なない','gold');explode(P.x,P.y,220,200,'#ffd23f');G.shake=16;sfx('boom');sfx('tres')}}
 
 /* ================= stand sprites ================= */
 function mkStandSprite(d,idx){const c=document.createElement('canvas');c.width=120;c.height=140;const g=c.getContext('2d');
@@ -2170,6 +2199,7 @@ function frame(now){const dt=Math.min(.05,(now-last)/1000);last=now;
     if(G.state==='play'){const sdt=dt*SET.spd,n=Math.ceil(sdt/.02);for(let i=0;i<n&&G.state==='play';i++)update(sdt/n)}
     else if(G.state==='title'){G.t+=dt;G.idle=2;idleGo(dt);updMisc(dt);G.cx=P.x;G.cy=P.y-30}
     else if(G.state==='cutin'){G.cutT-=dt;if(G.cutT<=0)endCutin()}
+    else if(G.state==='revive')updRevive(dt)
     else if(G.state==='over'||G.state==='win'){updMisc(dt)}
     render();
     if(G.state!=='title'&&(G.hudT-=dt)<=0){G.hudT=.1;hud()}
