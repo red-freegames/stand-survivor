@@ -216,6 +216,23 @@ button{font-family:inherit;cursor:pointer;border:0;color:#fff}
 #warn .wname{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) skew(-10deg);text-align:center;background:#000;border:4px solid #ff2050;padding:10px 30px;box-shadow:8px 8px 0 #ff2050;animation:big 3s ease forwards}
 #warn .wname small{display:block;font-family:Anton;letter-spacing:.4em;color:#ff2050;font-size:16px}
 #warn .wname b{font-size:clamp(26px,6vw,52px);font-weight:400}
+/* ボス登場カットイン：本体＋スタンドの肖像と台詞 */
+#wimg{position:absolute;z-index:2;left:50%;top:50%;height:min(34vh,250px);transform:translate(-50%,-112%);filter:drop-shadow(6px 6px 0 #000) drop-shadow(0 0 24px #ff2050);animation:wimg 3s ease forwards}
+#warn #wline{display:block;font-style:normal;margin-top:6px;font-size:clamp(14px,3.4vw,24px);color:#ffd23f;text-shadow:2px 2px 0 #000;max-width:min(86vw,720px);white-space:normal;line-height:1.4}
+@keyframes wimg{0%{opacity:0;transform:translate(-30%,-112%)}12%{opacity:1;transform:translate(-50%,-112%)}85%{opacity:1}100%{opacity:0}}
+/* 合体必殺技のカットイン：スタンド2体を並べる */
+#cutin .cimgw2{display:none;position:absolute;left:30%;top:50%;transform:translateY(-50%) skewY(8deg);z-index:2;animation:cimg 1.8s ease-out forwards}
+#cutin .cimgw2 img{height:min(46vh,320px);filter:drop-shadow(0 0 30px var(--c2)) drop-shadow(6px 6px 0 #000)}
+#cutin.combo .cimgw2{display:block}#cutin.combo .cimgw{left:4%}
+#cutin.combo .band{background:linear-gradient(90deg,var(--c) 0%,#000 45%,#000 55%,var(--c2) 100%)}
+#cutin.combo #ctype{color:#ffd23f;letter-spacing:.2em}
+#cutin.combo #cname{font-family:"Dela Gothic One",sans-serif;font-size:clamp(26px,5.6vw,60px);line-height:1.15}
+#cutin.combo #cjp{font-family:Anton;letter-spacing:.06em}
+@media (max-width:680px){#cutin.combo .cimgw2{left:24%}#cutin.combo .cimgw2 img,#cutin.combo .cimgw img{height:min(30vh,200px)}}
+/* リザルトのシェア */
+#shareRow{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;align-items:center;margin:8px 0}
+#shareImg{width:min(360px,80vw);border:3px solid #000;box-shadow:5px 5px 0 #000;display:block;margin:6px auto}
+.bigbtn.x{background:#000;color:#fff}.bigbtn.x:hover{background:#222}
 
 /* character select */
 /* stage select */
@@ -533,7 +550,7 @@ a.bigbtn.more{background:linear-gradient(135deg,#1a4a8a,#3d6bff);font-size:clamp
 <div id="joy" class="hidden"><div id="knob"></div></div>
 <div id="fxl"></div>
 <div id="revOv"><svg viewBox="0 0 800 100" preserveAspectRatio="none"><path d="M0,50 L75,50 L90,18 L105,84 L120,50 L240,50 L255,18 L270,84 L285,50 L590,50 L605,2 L620,98 L635,50 L800,50"/></svg><div id="revTx"></div></div>
-<div id="warn"><div class="wbg"></div><div class="row" style="top:8%">ゴゴゴゴゴゴゴゴゴゴゴゴゴゴゴゴ</div><div class="row b" style="top:72%">ゴゴゴゴゴゴゴゴゴゴゴゴゴゴゴゴ</div><div class="wname"><small>WARNING ─ BOSS</small><b id="wname"></b></div></div>
+<div id="warn"><div class="wbg"></div><div class="row" style="top:8%">ゴゴゴゴゴゴゴゴゴゴゴゴゴゴゴゴ</div><div class="row b" style="top:72%">ゴゴゴゴゴゴゴゴゴゴゴゴゴゴゴゴ</div><img id="wimg" alt=""><div class="wname"><small>WARNING ─ BOSS</small><b id="wname"></b><i id="wline"></i></div></div>
 
 <div id="title" class="ov">
   <div class="rays"></div>
@@ -587,7 +604,7 @@ a.bigbtn.more{background:linear-gradient(135deg,#1a4a8a,#3d6bff);font-size:clamp
 
 <div id="cutin"><div class="dim"></div><div class="lines"></div><div class="band"></div>
   <div class="kaku">覚 醒 確 定 !!</div>
-  <div class="cimgw"><img id="cimg" alt=""></div>
+  <div class="cimgw"><img id="cimg" alt=""></div><div class="cimgw2"><img id="cimg2" alt=""></div>
   <div class="ctx"><div id="ctype"></div><div id="cname"></div><div id="cjp"></div><div id="ccry"></div></div>
   <div class="flash"></div>
 </div>
@@ -609,7 +626,8 @@ a.bigbtn.more{background:linear-gradient(135deg,#1a4a8a,#3d6bff);font-size:clamp
 
 <div id="setov" class="ov hidden"><h2 class="ovh">SETTINGS</h2><div id="setlist"></div><button class="bigbtn sub" id="setClose">戻る</button></div>
 
-<div id="over" class="ov hidden"><div id="overHead"></div><div id="stats"></div>
+<div id="over" class="ov hidden"><div id="overHead"></div>
+  <div id="shareRow"><img id="shareImg" alt="リザルト画像"><button class="bigbtn x" id="shareX">𝕏 にポスト</button><button class="bigbtn sub" id="shareSave">📷 画像を保存／共有</button></div><div id="stats"></div>
   <div class="row2"><button class="bigbtn" id="retryBtn">再挑戦</button><button class="bigbtn sub" id="toTitleBtn">タイトルへ</button></div>
   <div class="row2"><a class="bigbtn sub more" href="https://red-freegames.github.io/">🎮 他のゲームを見る</a></div></div>
 
@@ -851,7 +869,7 @@ function newGame(ch,stg,hard,endless){
   ch=ch||G.ch||CHARS[0];G.stage=stg?stageOf(stg):(G.stage||STAGES[0]);const md=charMods(ch);G.md=md;
   // ステージ専用の見た目・ギミック状態／ハードモード
   G.hard=!!hard&&!endless;G.endless=!!endless;G.nextBoss=120;G.bossN=0;G.theme=themeOf(G.stage.id);G.gim=G.theme.gim;G.spr=stageSpr(G.stage.id);
-  Object.assign(G,{hz:[],spots:[],mines:[],cage:null,storm:0,stormNext:45,thiefNext:30,relicNext:25,arena:0,arenaNext:60,alarm:0,alarmCd:0,lightA:0,lx:0,ly:0,buffT:0,accelT:0,pfz:0,eSpd:1,uSeen:false,achT:1,run:{},finalKilled:false});
+  Object.assign(G,{hz:[],spots:[],mines:[],cage:null,storm:0,stormNext:45,thiefNext:30,relicNext:25,arena:0,arenaNext:60,alarm:0,alarmCd:0,lightA:0,lx:0,ly:0,buffT:0,accelT:0,pfz:0,eSpd:1,uSeen:false,achT:1,run:{},finalKilled:false,comboT:{},comboChk:0,comboG:0,comboFx:null});
   Object.assign(G,{ch,dmgMul:md.dmg||1,xpMul:md.xp||1,state:'title',t:0,kills:0,lv:1,xp:0,need:xpNeed(1),pend:0,en:[],pr:[],eb:[],zn:[],gm:[],pt:[],dn:[],sh:[],fx:[],st:[],
     timeStop:0,tsMax:0,tsSec:0,erase:0,eraseS:null,shake:0,hurtF:0,cdMul:1,spdMul:1,magR:80,spawnAcc:0,nextElite:40,nextWave:60,bossIdx:0,boss:null,bossKills:0,bonus:BONUS0(),gold:0,banked:false,cutQ:[],dmgTaken:1,weakMul:1.3,goldMul:1,synAct:{},synDirty:true,tsBonus:0,tsDmg:0,items:[],maskT:0,warnT:999,src:null,banMode:false,
     idle:0,goT:0,cx:0,cy:0,hudT:0,slotDirty:true,choices:[],choiceStart:false,cutT:0,anim:0});
@@ -1394,7 +1412,7 @@ function spawnUniq(x,y){const u=G.theme.ue;if(!G.uSeen){G.uSeen=true;shout(P.x,P
 function spawnBoss(k,si){si=si??STAGES.indexOf(G.stage);const th=themeOf(STAGES[si].id),a=R()*TAU,rr=Math.hypot(VW,VH)/2+260,x=P.x+Math.cos(a)*rr,y=P.y+Math.sin(a)*rr,b=th.boss[k],fin=k===3,e=spawnE('boss',x,y,'boss'+k);
   e.ent=3.2;e.st=0;e.stT=rnd(1,1.8);e.minT=fin?45:30;e.bth=th;e.bsi=si;e.skill=th.skill;e.pw=BOSS_PW[(si+k)%BOSS_PW.length];
   e.hp=e.max=1600*hpScale()*(fin?1.2:k===0?.5:.7)*(G.endless?1:1-.08*Math.max(0,si-3));e.bud=e.max/e.minT;e.name=b[0];e.k=k;e.idx=[0,2,3,4][k];e.final=fin;G.boss=e;
-  $('wname').textContent=b[0];const w=$('warn');w.classList.remove('show');void w.offsetWidth;w.classList.add('show');setTimeout(()=>w.classList.remove('show'),3000);sfx('boss');G.shake=12}
+  $('wname').textContent=b[0];$('wline').textContent='「'+BOSS_LINE[STAGES[si].id][k]+'」';$('wimg').src=bossPortrait(th,k,si);const w=$('warn');w.classList.remove('show');void w.offsetWidth;w.classList.add('show');setTimeout(()=>w.classList.remove('show'),3000);sfx('boss');G.shake=12}
 
 /* ---- ボスの飛び道具（ボスごとに1種）：ナイフの扇投げ・炎の弾・結晶の全方位・追尾する念弾 ----
    突進と召喚の頻度を減らした分をこれに回している（被ダメージの総量は据え置き狙い） */
@@ -1413,6 +1431,22 @@ function drawEB(b){ctx.save();ctx.translate(b.x,b.y);const a=Math.atan2(b.vy,b.v
   else if(b.kind==='shard'){ctx.rotate(a+G.t*6);ctx.fillStyle='#b8f4ff';ctx.strokeStyle='#0a3a5a';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(10,0);ctx.lineTo(0,-5);ctx.lineTo(-10,0);ctx.lineTo(0,5);ctx.closePath();ctx.fill();ctx.stroke()}
   else{const g=ctx.createRadialGradient(0,0,2,0,0,b.r*1.6);g.addColorStop(0,'#fff');g.addColorStop(.45,'#c86bff');g.addColorStop(1,'rgba(120,0,200,0)');ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,0,b.r*1.6,0,TAU);ctx.fill()}
   ctx.restore()}
+// ボス登場カットインの台詞（オリジナル）
+const BOSS_LINE={
+ s1:['この坂を通りたけりゃあ…オレを越えていきな！','電気が通る場所なら…どこからでも狙えるのさ','シャバの空気は…久しぶりに美味いぜェ','矢に選ばれた者だけが…この町で生き残る'],
+ s2:['砂の下は…オレの縄張りだ','この鉄塔を降りた者は…二度と地上に戻れない','灼けつく太陽はオレの味方…干からびて果てろ','炎の運命からは…誰も逃れられぬ'],
+ s3:['若さとは…奪うためにあるものだ','鏡の向こうへ…招待してやるよ','カラカラに干からびていく気分はどうだ？','ボスの正体に近づく者は…ここで終わりだ'],
+ s4:['脱獄など…許可した覚えはない','この雨は…止まないぜ','懲罰房へようこそ…出口は無い','おまえの記憶…円盤にして頂こう'],
+ s5:['進化の果てに…人は恐竜へと還る','この距離なら…外しはしない','回転こそが…無限の力を生む','国家のためならば…いかなる手も汚そう'],
+ s6:['写真の中から…ずっと見ていたぞ','標的…捕捉…追跡ヲ開始スル','吸い込んだその空気が…おまえの最期だ','私は…ただ静かに暮らしたいだけなんだ'],
+ s7:['この闘技場で…死者は眠らない','低い所へ降りれば…カビに喰われるぞ','運命は…すでに決まっている','頂点に立つのは…常にこの私だ'],
+ s8:['凍てつく翼から…逃れられると思うな','さあ…魂を賭けようじゃあないか','館の主に会いたいのなら…私を倒すことだ','人間ごときが…世界を統べるこの私に挑むか'],
+ s9:['深海からの奇襲…避けられるかな？','近づくほど…おまえは小さくなる','重力こそが…人を天国へ導く','時は加速し…新たな世界が始まる']};
+// ボスの肖像（登場カットイン用）：背後のスタンド＋本体
+const BPORT={};
+function bossPortrait(th,k,si){const key=STAGES[si].id+k;if(BPORT[key])return BPORT[key];const b=th.boss[k],c=document.createElement('canvas');c.width=220;c.height=230;const g=c.getContext('2d');
+  const st=BSTAND[key]||(BSTAND[key]=mkStandSprite({col:b[2],sym:BOSS_SYM[k]},si*4+k+2));g.globalAlpha=.95;g.drawImage(st,30,-8,168,196);g.globalAlpha=1;
+  drawHuman(84,170,1,null,3.2,0,{style:BOSS_STYLE[(si*4+k)%BOSS_STYLE.length],coat:b[1],hair:shade(b[1],-.45),acc:b[2]},g);return BPORT[key]=c.toDataURL()}
 // ボスの見た目：ステージ×番号ごとに髪型を変えた「本体」と、背後に浮かぶ「スタンド」
 const BOSS_STYLE=['long','hat','pomp','curl','fringe','bob','tower','cap'],BOSS_SYM=['☠','✦','✸','♛'],BSTAND={};
 function drawBoss(e,bob){const k=e.k??e.bk??0,b=(e.bth||G.theme).boss[k],si=e.bsi??STAGES.indexOf(G.stage),key=STAGES[si].id+k;
@@ -1709,7 +1743,7 @@ function afterChoice(){if(G.pend>0)openChoice(false)}
 function cutin(d,mode){G.state='cutin';const el=$('cutin'),isAw=mode==='aw';el.className='';void el.offsetWidth;el.className='show'+(isAw?' max':'');el.style.setProperty('--c',d.col);
   $('cimg').src=d.img;$('ctype').textContent=isAw?'★ 覚醒 ─ AWAKENING ★':'スタンド発現 ─ '+TYPE_NAME[d.type];$('cname').textContent=d.name;$('cjp').textContent='「'+d.jp+'」';$('ccry').textContent=isAw?'覚醒能力「'+AWAKE[d.id].name+'」':d.cry;
   G.cutT=G.cutMax=isAw?2.2:1.5;sfx(isAw?'gold':'cut')}
-function endCutin(){if(G.state!=='cutin')return;$('cutin').className='';if(G.cutQ.length){cutin(G.cutQ.shift(),'aw');return}G.state='play';afterChoice()}
+function endCutin(){if(G.state!=='cutin')return;$('cutin').className='';if(G.cutQ.length){cutin(G.cutQ.shift(),'aw');return}G.state='play';if(G.comboFx){const f=G.comboFx;G.comboFx=null;f()}afterChoice()}
 
 /* ---- 矢尻（ボス・エリートが落とす）：80%で1進化 / 16%で3進化 / 4%で5進化
    進化先：Lv上昇 or（Lv MAX かつ未覚醒なら）覚醒。全て覚醒済み＆枠が埋まっていれば基本ステータス+1 ---- */
@@ -1785,7 +1819,69 @@ function win(){G.state='win';sfx('win');saveBest();const si=STAGES.indexOf(G.sta
     +(!wasAll&&allClear()?'<div class="nextst">★ HARD MODE 解放!! ステージ選択でONにできる ★</div>':'')+(hFirst?'<div class="nextst">★ HARD CLEAR!! ★</div>':'')+(first&&nx&&!stageOwned(nx)?`<div class="nextst">NEW!! 次のステージ「${nx.name}」が ◎${nx.price.toLocaleString()} で解放可能に</div>`:!nx&&first?'<div class="nextst">★ 全ステージ制覇!! ★</div>':'');showStats();$('over').classList.remove('hidden')}
 function saveBest(){if(G.t>BEST){BEST=G.t;try{localStorage.setItem('standSurvBest',String(BEST))}catch(e){}}}
 function showStats(){$('stats').innerHTML=`<span style="color:#ffd23f">${titleName()?`「${titleName()}」`:''}${G.ch.name}</span>　生存 <b>${fmt(G.t)}</b>　Lv <b>${G.lv}</b>　撃破 <b>${G.kills}</b><br>`+G.st.map(s=>`<span style="color:${s.def.col}">${s.def.name}</span> ${lvTxt(s)}`).join('　/　')
-  +`<div class="newun"><div><span>獲得マネー <b>+${Math.floor(G.gold).toLocaleString()}</b>　（所持 ${SAVE.money.toLocaleString()}）</span></div></div>`+resultTable()}
+  +`<div class="newun"><div><span>獲得マネー <b>+${Math.floor(G.gold).toLocaleString()}</b>　（所持 ${SAVE.money.toLocaleString()}）</span></div></div>`+resultTable();buildShare()}
+/* ================= 合体必殺技：特定のスタンド2体が揃うと、時を止めたカットインから共同の大技 ================= */
+const COMBOS=[
+ {a:'star',b:'time',name:'静止世界のラッシュ合戦',cry:'オラオラオラ ─ 無駄無駄無駄ァッ!!'},
+ {a:'star',b:'stone',name:'星と糸の親子ラッシュ',cry:'オラオラオラオラァッ!!'},
+ {a:'star',b:'hermit',name:'星と茨の連携',cry:'見切ったぜ ─ そこだッ!!'},
+ {a:'diamond',b:'star',name:'ダイヤと星のダブルラッシュ',cry:'ドラララ ─ オラオラァッ!!'},
+ {a:'diamond',b:'void',name:'削って直す二人組',cry:'ガオンッ ─ ドララララァッ!!'},
+ {a:'golden',b:'zipper',name:'黄金のジッパー葬送',cry:'無駄無駄 ─ アリアリアリィッ!!'},
+ {a:'pistols',b:'aero',name:'弾丸と機銃の十字砲火',cry:'イィーハー ─ ボラボラボラァッ!!'},
+ {a:'emerald',b:'silver',name:'翠玉と銀の剣舞',cry:'エメラルドバラージュ ─ ホラホラァッ!!'},
+ {a:'stone',b:'weather',name:'雷雲と糸の結界',cry:'オラオラ ─ バリバリバリィッ!!'},
+ {a:'nail',b:'parallel',name:'並行世界の黄金回転',cry:'止まらぬ回転 ─ ドジャァァン!!'}];
+const COMBO_CD=40;
+// 揃っている合体技を調べ、近くに敵が多い（またはボスがいる）時に発動
+function updCombo(rdt){if(G.timeStop>0||G.erase>0)return;if((G.comboChk-=rdt)>0)return;G.comboChk=.5;
+  const has=id=>G.st.find(s=>s.def.id===id);
+  for(const c of COMBOS){const A=has(c.a),B=has(c.b);if(!A||!B)continue;const k=c.a+c.b;
+    if(G.comboT[k]===undefined){G.comboT[k]=G.t+12;bigText(`合体技「${c.name}」解放!!`,'gold long');sfx('gold');continue}
+    if(G.t<G.comboT[k]||G.t<G.comboG)continue;
+    const n=inR(P.x,P.y,340).filter(e=>!e.prop&&!e.dead).length;if(n<10&&!(G.boss&&!G.boss.dead&&Math.hypot(G.boss.x-P.x,G.boss.y-P.y)<340))continue;
+    G.comboT[k]=G.t+COMBO_CD;G.comboG=G.t+12;comboCutin(c,A,B);return}}
+function comboCutin(c,A,B){G.state='cutin';const el=$('cutin');el.className='';void el.offsetWidth;el.className='show combo';el.style.setProperty('--c',A.def.col);el.style.setProperty('--c2',B.def.col);
+  $('cimg').src=A.def.img;$('cimg2').src=B.def.img;$('ctype').textContent='★ 合体必殺技 ─ 時よ止まれ ★';$('cname').textContent=c.name;$('cjp').textContent=`${A.def.name} × ${B.def.name}`;$('ccry').textContent=c.cry;
+  G.cutT=G.cutMax=1.9;sfx('tstop');sfx('gold');G.comboFx=()=>comboHit(c,A,B)}
+// 発動：周囲の敵すべてに2体の合計ダメージ＋短い行動停止（ボスは1秒あたりの上限が効く）
+function comboHit(c,A,B){const lv=(A.lv+B.lv)/2*((A.aw&&B.aw)?1.3:1),d=60+18*lv,r=340;let i=0;
+  for(const e of inR(P.x,P.y,r)){if(e.prop||e.dead)continue;G.src=(i++%2)?B:A;hurt(e,d,{kb:120});if(!e.dead&&e.type!=='boss')e.stun=Math.max(e.stun||0,1.2)}G.src=null;
+  fx({t:'ring',x:P.x,y:P.y,r0:20,r1:r,life:.5,col:A.def.col,lw:12});fx({t:'ring',x:P.x,y:P.y,r0:40,r1:r*.8,life:.6,col:B.def.col,lw:8});part(P.x,P.y,A.def.col,26,420,4,.6);part(P.x,P.y,B.def.col,26,420,4,.6);
+  bigText(c.name+'!!','gold long');shout(P.x,P.y-80,'ドドドドドドド','#ffd23f',40);G.shake=18;sfx('boom');sfx('tres');A.vis=B.vis=1.2}
+
+/* ================= リザルトのシェア：結果を1枚の画像にして、Xへのポスト・保存・共有 ================= */
+const GAME_URL='https://red-freegames.github.io/stand-survivor/';
+function resultHeadline(){const si=STAGES.indexOf(G.stage);if(G.endless)return'∞ ENDLESS '+fmt(G.t);
+  if(G.state==='win')return(G.finalKilled||!needFinal(si))?'STAGE CLEAR':'生還';return'TO BE CONTINUED'}
+function makeShareImage(){const W2=1200,H2=630,c=document.createElement('canvas');c.width=W2;c.height=H2;const g=c.getContext('2d'),si=STAGES.indexOf(G.stage),col=DEFS.find(d=>d.id===G.ch.stand).col;
+  const bg=g.createLinearGradient(0,0,W2,H2);bg.addColorStop(0,'#1a0630');bg.addColorStop(1,'#05020a');g.fillStyle=bg;g.fillRect(0,0,W2,H2);
+  g.save();g.translate(250,330);g.globalAlpha=.16;g.fillStyle=col;for(let i=0;i<36;i++){g.rotate(TAU/36);g.beginPath();g.moveTo(0,0);g.lineTo(900,-30);g.lineTo(900,30);g.fill()}g.restore();
+  g.drawImage(G.ch.cnv,20,120,420,446);
+  g.textBaseline='alphabetic';g.lineJoin='round';
+  const T=(s,x,y,f,fc,lw)=>{g.font=f;g.lineWidth=lw||8;g.strokeStyle='#000';g.strokeText(s,x,y);g.fillStyle=fc;g.fillText(s,x,y)};
+  g.textAlign='left';T('STAND SURVIVOR',36,64,'48px Anton','#ffd23f',8);
+  const head=resultHeadline();T(head,470,140,(head.length>12?'64px':'84px')+' Anton',G.state==='win'||G.endless?'#ffd23f':'#ff5c8a',10);
+  T(`${G.ch.name}　─　${G.endless?'エンドレス':'STAGE '+(si+1)}「${G.stage.name}」`,470,196,'30px "Dela Gothic One"','#ffffff',7);
+  if(titleName())T(`称号「${titleName()}」`,470,236,'24px "Dela Gothic One"','#ffd23f',6);
+  T(`生存 ${fmt(G.t)}　Lv ${G.lv}　撃破 ${G.kills.toLocaleString()}　ボス ${G.bossKills}`,470,290,'30px "Dela Gothic One"','#ffffff',7);
+  // スタンド6枠
+  G.st.slice(0,6).forEach((s,i)=>{const x=470+i*118,y=318;g.fillStyle='rgba(0,0,0,.55)';g.fillRect(x,y,108,150);g.strokeStyle=s.def.col;g.lineWidth=4;g.strokeRect(x,y,108,150);
+    g.drawImage(s.def.spr,x+4,y+2,100,116);g.textAlign='center';T(s.aw?'覚醒':s.lv>=MAXLV?'MAX':'Lv'+s.lv,x+54,y+142,'22px "Dela Gothic One"',s.aw?'#ff8ad8':'#fff',5);g.textAlign='left'});
+  const syn=SYN.filter(y=>(G.synAct[y.id]??-1)>=0).map(y=>y.tag).join('・');if(syn)T('シナジー：'+syn,470,512,'24px "Dela Gothic One"','#9fe0ff',6);
+  T('#スタンドサバイバー',470,566,'24px "Dela Gothic One"','#ffffff',6);T(GAME_URL.replace('https://',''),470,604,'22px "Dela Gothic One"','#bba8e0',5);
+  return c}
+let shareCanvas=null;
+function shareText(){const si=STAGES.indexOf(G.stage),h=resultHeadline();
+  return G.endless?`【STAND SURVIVOR】${G.ch.name}で∞エンドレス ${fmt(G.t)} 生存！（ボス撃破${G.bossKills}体）`
+    :`【STAND SURVIVOR】${G.ch.name}でSTAGE ${si+1}「${G.stage.name}」${h==='STAGE CLEAR'?'をクリア！':h==='生還'?'から生還！':'で力尽きた…'} Lv${G.lv}・撃破${G.kills.toLocaleString()}`}
+function buildShare(){try{shareCanvas=makeShareImage();$('shareImg').src=shareCanvas.toDataURL('image/png')}catch(e){shareCanvas=null}}
+$('shareX').onclick=()=>{const u='https://twitter.com/intent/tweet?text='+encodeURIComponent(shareText()+'\n#スタンドサバイバー #REDFREEGAMES\n')+'&url='+encodeURIComponent(GAME_URL);window.open(u,'_blank','noopener');sfx('tick')};
+$('shareSave').onclick=()=>{if(!shareCanvas)return;shareCanvas.toBlob(async b=>{const f=new File([b],'stand-survivor.png',{type:'image/png'});
+  // スマホは共有シート（画像付き）、それ以外は画像を保存
+  try{if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],text:shareText()+'\n#スタンドサバイバー',url:GAME_URL});return}}catch(e){if(e&&e.name==='AbortError')return}
+  const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='stand-survivor.png';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),4000)},'image/png');sfx('tick')};
+
 // リザルト：スタンドごとの与ダメージ・DPS・撃破数
 function resultTable(){const tot=G.st.reduce((a,s)=>a+(s.dmg||0),0)||1;
   return`<div class="rtab"><div class="rth">スタンド別リザルト</div>${[...G.st].sort((a,b)=>(b.dmg||0)-(a.dmg||0)).map(s=>{const sec=Math.max(1,G.t-s.t0),dm=Math.round(s.dmg||0);
@@ -1953,7 +2049,7 @@ function update(rdt){
   for(const c of G.chests){c.ph+=dt;if((c.x-P.x)**2+(c.y-P.y)**2<(P.r+26)**2){c.dead=true;G.chests=G.chests.filter(o=>!o.dead);openChest();return}}
   // シークレットキャラとの遭遇
   for(const c of G.secrets){if((c.pos.x-P.x)**2+(c.pos.y-P.y)**2<38*38){meetSecret(c);return}}
-  updMasks(dt);updItems(dt);updGim(dt,rdt);
+  updMasks(dt);updItems(dt);updGim(dt,rdt);updCombo(rdt);
   // 残り時間の警告
   const rem=G.endless?999:STAGE_TIME-G.t;if(rem<=30&&G.warnT>30){bigText('残り30秒!!','red');sfx('boss')}if(rem<=10&&Math.ceil(rem)<Math.ceil(G.warnT)){bigText(String(Math.ceil(rem)),'gold')}G.warnT=rem;
   while(G.xp>=G.need){G.xp-=G.need;G.lv++;G.need=xpNeed(G.lv);G.pend++}
@@ -2178,7 +2274,7 @@ if(look.style==='dog'){const fur=tint||look.hair,dk=tint||look.coat;c.fillStyle=
   c.restore()}
 // キャラ選択用のポートレート
 function makePortraits(){[...CHARS,...NPCS].forEach(ch=>{const cnv=document.createElement('canvas');cnv.width=160;cnv.height=170;const g=cnv.getContext('2d');
-  const sd=DEFS.find(d=>d.id===ch.stand);g.globalAlpha=.9;g.drawImage(sd.spr,-4,-6,136,159);g.globalAlpha=1;drawHuman(108,128,-1,null,2.5,0,ch.look,g);ch.img=cnv.toDataURL()})}makePortraits();
+  const sd=DEFS.find(d=>d.id===ch.stand);g.globalAlpha=.9;g.drawImage(sd.spr,-4,-6,136,159);g.globalAlpha=1;drawHuman(108,128,-1,null,2.5,0,ch.look,g);ch.img=cnv.toDataURL();ch.cnv=cnv})}makePortraits();
 function drawStand(s){const d=s.def,bob=Math.sin(G.t*3+s.ang)*2,al=Math.min(1,s.vis/.22)*.92,k=Math.min(1,s.pop/.14),sc=k<1?.3+k*.85:1.15-Math.min(.15,(s.pop-.14)*1.2),w=60*sc,h=70*sc;
   ctx.globalAlpha=al;
   if(s.rush>0){for(let i=0;i<2;i++){ctx.globalAlpha=al*.38;ctx.drawImage(d.spr,s.sx-w/2+rnd(-8,8),s.sy-h*.53+rnd(-6,6),w,h)}ctx.globalAlpha=al}
