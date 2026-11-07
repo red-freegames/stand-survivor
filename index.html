@@ -532,6 +532,19 @@ a.bigbtn.more{background:linear-gradient(135deg,#1a4a8a,#3d6bff);font-size:clamp
 .ch .sd small{font-size:11px;color:#d0d0d0}
 .srt{color:#c4b8dc}.rn small,.rv small,.pn small{color:#d9c8ff}
 @media (max-width:680px){.cjp{font-size:13px}.cdesc{font-size:12.5px}}
+/* 見やすさ調整2：キャラ強化・称号・キャラ選択。太い見出し書体は名前だけに残し、
+   ずらし影（文字が潰れる原因）を細い縁取りに変え、小さな説明文は読みやすいゴシックに */
+.ti b,.ch .nm{letter-spacing:.04em;text-shadow:-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000,1px 1px 0 #000,2px 3px 0 rgba(0,0,0,.7)}
+.ti b,.ch .nm{font-family:"Hiragino Kaku Gothic StdN","Hiragino Kaku Gothic ProN","Yu Gothic","Meiryo",sans-serif;font-weight:900}
+.ti b{font-size:17px;line-height:1.3;margin-bottom:3px}
+.ch .nm{font-size:21px}
+.ti small{font-size:12.5px;color:#f1e8ff;line-height:1.55;text-shadow:1px 1px 0 #000}
+.zc.zng .ti b{color:#e6dcf5}.zc.zng .ti small{color:#d8cdea}
+.ch .tt,.ch .sd small{font-family:"Hiragino Kaku Gothic ProN","Yu Gothic","Meiryo",sans-serif;font-weight:800;text-shadow:1px 1px 0 #000}
+.ch .tt{font-size:12.5px;color:#eadfff}
+.ch .sd small{font-size:11.5px;color:#e6e6e6;line-height:1.35;margin-top:2px}
+.ch .ps{font-size:12.5px;line-height:1.5}
+#chars .sub,#train .sub,#zukan .sub{font-family:"Hiragino Kaku Gothic ProN","Yu Gothic","Meiryo",sans-serif;font-weight:800;font-size:13px;color:#efe6ff;text-shadow:1px 1px 0 #000,0 0 6px #000}
 </style>
 </head>
 <body>
