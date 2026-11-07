@@ -683,9 +683,12 @@ function sfx(n){if(!AC||muted)return;if(AC.state==='suspended')AC.resume();const
 
 /* ================= state ================= */
 const G={state:'title'};let P={};
-const MAXLV=8;
+// スタンドLvは1〜13（13でMAX・矢尻で覚醒）。能力の伸びは旧Lv1〜8と同じ幅に収めるため、計算は実効レベルで行う
+const MAXLV=13,effLv=r=>1+(r-1)*7/12;
+// 説明文の端数を整える（10以上は整数、未満は小数1桁）
+const dfmt=t=>t.replace(/\d+\.\d+/g,m=>{const v=+m;return v>=10?String(Math.round(v)):String(+v.toFixed(1))});
 const TYPE_NAME=['近距離型','遠距離・範囲型','特殊型'],TYPE_COL=['#ff5c8a','#3dd6ff','#ffd23f'];
-const xpNeed=l=>Math.floor((5+l*4+Math.pow(l,1.6))*1.2);
+const xpNeed=l=>Math.floor((5+l*4+Math.pow(l,1.6))*.7);
 let BEST=0;try{BEST=+localStorage.getItem('standSurvBest')||0}catch(e){}
 // セーブ：所持マネーと解放状況（最初は星野ジンのみ）。ステージは今後マネーで解放する想定
 let SAVE={unlocked:['jin'],stands:['star'],found:[],money:0,stages:['s1'],pu:{},cm:{}};try{const s=JSON.parse(localStorage.getItem('standSurvSave')||'null');if(s&&Array.isArray(s.unlocked))SAVE=Object.assign(SAVE,s)}catch(e){}
@@ -726,52 +729,52 @@ const AWAKE={
  diamond:{name:'完全修復',desc:'致死ダメージを受けてもHP60%で踏みとどまる（60秒に1回）'},
  golden:{name:'黄金の鎮魂歌',desc:'被弾するたび周囲の敵へ無駄無駄ラッシュの反撃（攻撃は真実に到達しない）'},
  zipper:{name:'全方位ジッパー',desc:'3秒毎に8方向へジッパーを走らせ、直線上の敵を切断（防御無視）',
-  upd(s,dt){if((s.awT=(s.awT??3)-dt)>0)return;s.awT=3;if(!near(P.x,P.y,300))return;const L=280,d=40+10*s.lv;
+  upd(s,dt){if((s.awT=(s.awT??3)-dt)>0)return;s.awT=3;if(!near(P.x,P.y,300))return;const L=280,d=40+10*s.L;
    for(let i=0;i<8;i++){const a=i/8*TAU,x2=P.x+Math.cos(a)*L,y2=P.y+Math.sin(a)*L;for(const t of inR((P.x+x2)/2,(P.y+y2)/2,L/2+10))if(segD2(t.x,t.y,P.x,P.y,x2,y2)<(14+t.r)**2)hurt(t,d,{pa:1});fx({t:'zip',x:P.x,y:P.y,x2,y2,life:.4,col:s.def.col})}s.vis=.6;sfx('hit')}},
  emerald:{name:'翠玉の結界',desc:'本体の周囲240に結界を張り、侵入した敵へ自動で翠玉弾を撃ち込む',
-  upd(s,dt){if((s.awT=(s.awT??.5)-dt)>0)return;s.awT=.5;for(const e of nearN(P.x,P.y,240,5))shoot({x:P.x,y:P.y,a:Math.atan2(e.y-P.y,e.x-P.x),sp:520,r:7,dmg:10+3*s.lv,life:.6,kind:'emer',col:s.def.col})}},
+  upd(s,dt){if((s.awT=(s.awT??.5)-dt)>0)return;s.awT=.5;for(const e of nearN(P.x,P.y,240,5))shoot({x:P.x,y:P.y,a:Math.atan2(e.y-P.y,e.x-P.x),sp:520,r:7,dmg:10+3*s.L,life:.6,kind:'emer',col:s.def.col})}},
  silver:{name:'甲冑解除',desc:'本体の移動速度+12%。1.2秒毎に5本の剣針を扇状に乱れ撃つ',
-  upd(s,dt){if((s.awT=(s.awT??1.2)-dt)>0)return;s.awT=1.2;if(!near(P.x,P.y,450))return;const a=faceAng(450);for(let i=0;i<5;i++)shoot({x:P.x,y:P.y,a:a+(i-2)*.16,sp:880,r:6,dmg:16+4*s.lv,pierce:6,life:.45,kind:'needle',col:s.def.col})}},
+  upd(s,dt){if((s.awT=(s.awT??1.2)-dt)>0)return;s.awT=1.2;if(!near(P.x,P.y,450))return;const a=faceAng(450);for(let i=0;i<5;i++)shoot({x:P.x,y:P.y,a:a+(i-2)*.16,sp:880,r:6,dmg:16+4*s.L,pierce:6,life:.45,kind:'needle',col:s.def.col})}},
  aero:{name:'二酸化炭素レーダー',desc:'1.6秒毎に呼吸を探知する追尾ミサイルを発射（着弾で大爆発）',
-  upd(s,dt){if((s.awT=(s.awT??1.6)-dt)>0)return;s.awT=1.6;const e=near(s.px,s.py,500);if(!e)return;const lv=s.lv;s.vis=Math.max(s.vis||0,.5);
+  upd(s,dt){if((s.awT=(s.awT??1.6)-dt)>0)return;s.awT=1.6;const e=near(s.px,s.py,500);if(!e)return;const lv=s.L;s.vis=Math.max(s.vis||0,.5);
    shoot({x:s.px,y:s.py,a:Math.atan2(e.y-s.py,e.x-s.px),sp:330,r:8,dmg:0,life:2.5,kind:'ankh',col:'#ff9a3d',homing:5,trail:1,onHit(p){explode(p.x,p.y,75,45+10*lv,'#ff9a3d');return false}})}},
  pistols:{name:'七人の弾丸隊',desc:'1.5秒毎に、8回跳弾する弾丸を3方向へ追加発射',
   upd(s,dt){if((s.awT=(s.awT??1.5)-dt)>0)return;s.awT=1.5;const e=near(P.x,P.y,400);if(!e)return;const b=Math.atan2(e.y-P.y,e.x-P.x);
-   for(let i=-1;i<=1;i++)shoot({x:P.x,y:P.y,a:b+i*.35,sp:650,r:5,dmg:13+4*s.lv,life:.7,kind:'pbullet',col:s.def.col,bn:8,trail:1,
+   for(let i=-1;i<=1;i++)shoot({x:P.x,y:P.y,a:b+i*.35,sp:650,r:5,dmg:13+4*s.L,life:.7,kind:'pbullet',col:s.def.col,bn:8,trail:1,
      onHit(p,t){if(p.bn<=0)return false;const nx=near(t.x,t.y,260,p.hit);if(!nx)return false;p.bn--;const a=Math.atan2(nx.y-t.y,nx.x-t.x);p.x=t.x;p.y=t.y;p.vx=Math.cos(a)*p.sp;p.vy=Math.sin(a)*p.sp;p.rot=a;p.life=.6;return true}})}},
  plankton:{name:'群体の再生',desc:'プランクトンが本体を修復し続ける（HP自然回復 +2/秒）'},
  violet:{name:'殺人ウイルスの衣',desc:'本体の周囲90に常時ウイルスを纏い、触れた敵を蝕み弱体化させる',
-  upd(s,dt){if(!s.cloud||s.cloud.dead){s.cloud={x:P.x,y:P.y,r:90,life:1e9,max:1e9,tick:.3,tt:0,dmg:6+2*s.lv,kind:'virus',col:s.def.col,upd(z){z.x=P.x;z.y=P.y},onHit:(z,t)=>{t.weak=Math.max(t.weak,1)}};G.zn.push(s.cloud)}s.cloud.dmg=6+2*s.lv}},
+  upd(s,dt){if(!s.cloud||s.cloud.dead){s.cloud={x:P.x,y:P.y,r:90,life:1e9,max:1e9,tick:.3,tt:0,dmg:6+2*s.L,kind:'virus',col:s.def.col,upd(z){z.x=P.x;z.y=P.y},onHit:(z,t)=>{t.weak=Math.max(t.weak,1)}};G.zn.push(s.cloud)}s.cloud.dmg=6+2*s.L}},
  cross:{name:'紅蓮の大旋風',desc:'5秒毎に追尾する火炎の十字10発を全方位へ放つ',
-  upd(s,dt){if((s.awT=(s.awT??5)-dt)>0)return;s.awT=5;if(!near(P.x,P.y,450))return;const lv=s.lv,c=s.def.col;for(let i=0;i<10;i++)shoot({x:P.x,y:P.y,a:i/10*TAU,sp:260,r:10,dmg:20+5*lv,life:2.4,kind:'ankh',col:c,homing:4.5,trail:1,onHit(p){explode(p.x,p.y,40,6+2*lv,c,1);return false}});bigText('紅蓮の大旋風!!','red')}},
+  upd(s,dt){if((s.awT=(s.awT??5)-dt)>0)return;s.awT=5;if(!near(P.x,P.y,450))return;const lv=s.L,c=s.def.col;for(let i=0;i<10;i++)shoot({x:P.x,y:P.y,a:i/10*TAU,sp:260,r:10,dmg:20+5*lv,life:2.4,kind:'ankh',col:c,homing:4.5,trail:1,onHit(p){explode(p.x,p.y,40,6+2*lv,c,1);return false}});bigText('紅蓮の大旋風!!','red')}},
  weather:{name:'ヘビー・ストーム',desc:'12秒毎に画面全体の天候を操り、全ての敵にダメージ＋5秒間弱体化',
-  upd(s,dt){if((s.awT=(s.awT??12)-dt)>0)return;s.awT=12;const hw=VW/2,hh=VH/2;let n=0;for(const e of G.en){if(e.dead||Math.abs(e.x-G.cx)>hw||Math.abs(e.y-G.cy)>hh)continue;e.weak=Math.max(e.weak,5);hurt(e,10+3*s.lv);n++}
+  upd(s,dt){if((s.awT=(s.awT??12)-dt)>0)return;s.awT=12;const hw=VW/2,hh=VH/2;let n=0;for(const e of G.en){if(e.dead||Math.abs(e.x-G.cx)>hw||Math.abs(e.y-G.cy)>hh)continue;e.weak=Math.max(e.weak,5);hurt(e,10+3*s.L);n++}
    if(n){G.hurtF=0;fx({t:'tsring',x:P.x,y:P.y,life:.6});G.shake=10;sfx('zap');bigText('ヘビー・ストーム','cyan')}}},
  time:{name:'止まった時の支配者',desc:'時間停止中、0.25秒毎にナイフを追加で投擲し続ける',
   upd(s,dt){if(G.timeStop<=0)return;if((s.awT=(s.awT??.25)-dt)>0)return;s.awT=.25;const e=randNear(P.x,P.y,500);const a=e?Math.atan2(e.y-P.y,e.x-P.x):R()*TAU,r=rnd(40,80),ra=R()*TAU;
-   shoot({x:P.x+Math.cos(ra)*r,y:P.y+Math.sin(ra)*r,a,sp:720,r:6,dmg:14+5*s.lv,pierce:1,life:1.1,kind:'knife',col:'#eef',frozen:1})}},
+   shoot({x:P.x+Math.cos(ra)*r,y:P.y+Math.sin(ra)*r,a,sp:720,r:6,dmg:14+5*s.L,pierce:1,life:1.1,kind:'knife',col:'#eef',frozen:1})}},
  killer:{name:'自動追尾爆弾',desc:'敵の体温を追い続ける不死身の小型爆弾が常に随行し、接触で爆破',
-  upd(s,dt){if(s.tank&&!s.tank.dead)return;const lv=s.lv;s.tank={x:P.x,y:P.y,r:10,life:1e9,max:1e9,kind:'tank',cd:0,upd(z,dt){z.cd-=dt;const e=near(z.x,z.y,500);if(!e){z.x+=(P.x-z.x)*dt*2;z.y+=(P.y-z.y)*dt*2;return}
+  upd(s,dt){if(s.tank&&!s.tank.dead)return;const lv=s.L;s.tank={x:P.x,y:P.y,r:10,life:1e9,max:1e9,kind:'tank',cd:0,upd(z,dt){z.cd-=dt;const e=near(z.x,z.y,500);if(!e){z.x+=(P.x-z.x)*dt*2;z.y+=(P.y-z.y)*dt*2;return}
      const dx=e.x-z.x,dy=e.y-z.y,d=Math.hypot(dx,dy)||1;z.x+=dx/d*190*dt;z.y+=dy/d*190*dt;z.face=dx<0?-1:1;if(d<e.r+12&&z.cd<=0){z.cd=.8;explode(z.x,z.y,60,30+8*lv,'#ff6fae');shout(z.x,z.y-24,'コッチヲミロ','#ff6fae',22)}}};G.zn.push(s.tank)}},
  crimson:{name:'未来予知',desc:'未来を読み、35%の確率で敵の攻撃を完全に回避する'},
  void:{name:'全方位削り',desc:'4秒毎に本体の周囲170の空間を丸ごと削り取る（防御無視）',
-  upd(s,dt){if((s.awT=(s.awT??4)-dt)>0)return;s.awT=4;if(!near(P.x,P.y,170))return;for(const e of inR(P.x,P.y,170)){hurt(e,50+12*s.lv,{pa:1});e.weak=Math.max(e.weak,3)}
+  upd(s,dt){if((s.awT=(s.awT??4)-dt)>0)return;s.awT=4;if(!near(P.x,P.y,170))return;for(const e of inR(P.x,P.y,170)){hurt(e,50+12*s.L,{pa:1});e.weak=Math.max(e.weak,3)}
    fx({t:'erase',x:P.x,y:P.y,a:0,r:170,sp:Math.PI,life:.4,col:s.def.col});shout(P.x,P.y-70,'ガオンッ','#5d7bff',34);sfx('cut')}},
  disc:{name:'能力の剥奪',desc:'弱体化した敵の被ダメージ増加が +30% → +70% に強化'},
  nail:{name:'極光の回転',desc:'3秒毎に、全てを貫く光り輝く巨大爪弾を放つ',
-  upd(s,dt){if((s.awT=(s.awT??3)-dt)>0)return;s.awT=3;const e=near(P.x,P.y,500);if(!e)return;shoot({x:P.x,y:P.y,a:Math.atan2(e.y-P.y,e.x-P.x),sp:300,r:18,dmg:60+12*s.lv,pierce:999,life:2.6,kind:'nail',col:'#ffd23f',spin:25,big:1});sfx('cut')}},
+  upd(s,dt){if((s.awT=(s.awT??3)-dt)>0)return;s.awT=3;const e=near(P.x,P.y,500);if(!e)return;shoot({x:P.x,y:P.y,a:Math.atan2(e.y-P.y,e.x-P.x),sp:300,r:18,dmg:60+12*s.L,pierce:999,life:2.6,kind:'nail',col:'#ffd23f',spin:25,big:1});sfx('cut')}},
  parallel:{name:'不運の転嫁',desc:'受けるダメージを並行世界へ押し付け、被ダメージ -50%'},
  heaven:{name:'時の加速・極',desc:'全スタンドのクールダウンがさらに -15%'},
  door:{name:'安全装置の書き込み',desc:'攻撃を受けると周囲220の敵をすべて本にして5秒間 行動停止させる'},
  stone:{name:'糸の結界',desc:'4秒毎に本体の周囲に糸の網を張り、触れた敵を縛りつつ継続ダメージ',
-  upd(s,dt){if((s.awT=(s.awT??4)-dt)>0)return;s.awT=4;if(!near(P.x,P.y,200))return;G.zn.push({x:P.x,y:P.y,r:140,life:5,max:5,tick:.3,tt:0,dmg:8+3*s.lv,kind:'web',col:'#3dbfff',onHit:(z,t)=>{t.weak=Math.max(t.weak,1);t.stun=Math.max(t.stun||0,.25)}})}},
+  upd(s,dt){if((s.awT=(s.awT??4)-dt)>0)return;s.awT=4;if(!near(P.x,P.y,200))return;G.zn.push({x:P.x,y:P.y,r:140,life:5,max:5,tick:.3,tt:0,dmg:8+3*s.L,kind:'web',col:'#3dbfff',onHit:(z,t)=>{t.weak=Math.max(t.weak,1);t.stun=Math.max(t.stun||0,.25)}})}},
  kiss:{name:'ダブル・ペイン',desc:'シールを剥がした瞬間、周囲の敵にも半分のダメージが広がる'},
  hermit:{name:'波紋のオーバードライブ',desc:'6秒毎に周囲180へ波紋を流し込み大ダメージ（ボスには2倍）',
-  upd(s,dt){if((s.awT=(s.awT??6)-dt)>0)return;s.awT=6;if(!near(P.x,P.y,180))return;for(const e of inR(P.x,P.y,180))hurt(e,(60+12*s.lv)*(e.type==='boss'?2:1));fx({t:'ring',x:P.x,y:P.y,r0:20,r1:180,life:.4,col:'#ffe066',lw:8});shout(P.x,P.y-60,'オーバードライブ!!','#ffe066',30);sfx('zap')}},
+  upd(s,dt){if((s.awT=(s.awT??6)-dt)>0)return;s.awT=6;if(!near(P.x,P.y,180))return;for(const e of inR(P.x,P.y,180))hurt(e,(60+12*s.L)*(e.type==='boss'?2:1));fx({t:'ring',x:P.x,y:P.y,r0:20,r1:180,life:.4,col:'#ffe066',lw:8});shout(P.x,P.y-60,'オーバードライブ!!','#ffe066',30);sfx('zap')}},
  fool:{name:'砂の翼',desc:'本体の移動速度 +10%。5秒毎に砂嵐で周囲の敵を大きく吹き飛ばす',
-  upd(s,dt){if((s.awT=(s.awT??5)-dt)>0)return;s.awT=5;if(!near(P.x,P.y,160))return;for(const e of inR(P.x,P.y,160))hurt(e,30+8*s.lv,{kb:300});fx({t:'ring',x:P.x,y:P.y,r0:20,r1:170,life:.45,col:'#d8c070',lw:10});part(P.x,P.y,'#d8c070',20,400,3,.5)}},
+  upd(s,dt){if((s.awT=(s.awT??5)-dt)>0)return;s.awT=5;if(!near(P.x,P.y,160))return;for(const e of inR(P.x,P.y,160))hurt(e,30+8*s.L,{kb:300});fx({t:'ring',x:P.x,y:P.y,r0:20,r1:170,life:.45,col:'#d8c070',lw:10});part(P.x,P.y,'#d8c070',20,400,3,.5)}},
  echoes:{name:'HEAVY PRESS',desc:'5秒毎に周囲200の敵を重くして3秒間 押し潰す（行動停止＋ダメージ）',
-  upd(s,dt){if((s.awT=(s.awT??5)-dt)>0)return;s.awT=5;if(!near(P.x,P.y,200))return;for(const e of inR(P.x,P.y,200)){e.stun=Math.max(e.stun||0,3);hurt(e,35+10*s.lv)}shout(P.x,P.y-60,'HEAVY PRESS!!','#7dff9a',32);G.shake=8;sfx('boom')}},
+  upd(s,dt){if((s.awT=(s.awT??5)-dt)>0)return;s.awT=5;if(!near(P.x,P.y,200))return;for(const e of inR(P.x,P.y,200)){e.stun=Math.max(e.stun||0,3);hurt(e,35+10*s.L)}shout(P.x,P.y-60,'HEAVY PRESS!!','#7dff9a',32);G.shake=8;sfx('boom')}},
  moody:{name:'完全再生',desc:'再生の分身が2体同時に現れる'},
  diver:{name:'潜行の盾',desc:'スタンドが本体に潜行して守り、被ダメージ -25%'},
 };
@@ -796,19 +799,19 @@ const CHARS=[
  {id:'jin',part:3,name:'星野 ジン',en:'JIN HOSHINO',title:'寡黙なる最強の学生',stand:'star',hp:150,pas:'全スタンドの攻撃力 +20%',mods:{dmg:1.2},unlock:{init:1}},
  {id:'nori',part:3,name:'緑川 ノリ',en:'NORI MIDORIKAWA',title:'冷静沈着な優等生',stand:'emerald',hp:130,pas:'獲得経験値 +25%・攻撃力 +8%',mods:{xp:1.25,dmg:1.08},unlock:{meet:'emerald'}},
  {id:'pol',part:3,name:'銀城 ポル',en:'POL GINJO',title:'誇り高き騎士道の剣士',stand:'silver',hp:140,pas:'本体の移動速度 +15%・攻撃力 +5%',mods:{spd:1.15,dmg:1.05},unlock:{meet:'silver'}},
- {id:'dion',part:3,name:'黒宮 ディオン',en:'DION KUROMIYA',title:'時を統べる吸血鬼',stand:'time',hp:180,pas:'攻撃力 +25%・HP自然回復 +2/秒・初期スタンドLv3',mods:{dmg:1.25,regen:2},boost:2,unlock:{awaken:'time'}},
- {id:'jo',part:4,name:'東雲 ジョウ',en:'JOU SHINONOME',title:'リーゼントの優しき番長',stand:'diamond',hp:160,pas:'HPが毎秒 2.5 自然回復・初期スタンドLv2',mods:{regen:2.5},boost:1,unlock:{money:1000}},
+ {id:'dion',part:3,name:'黒宮 ディオン',en:'DION KUROMIYA',title:'時を統べる吸血鬼',stand:'time',hp:180,pas:'攻撃力 +25%・HP自然回復 +2/秒・初期スタンドLv4',mods:{dmg:1.25,regen:2},boost:2,unlock:{awaken:'time'}},
+ {id:'jo',part:4,name:'東雲 ジョウ',en:'JOU SHINONOME',title:'リーゼントの優しき番長',stand:'diamond',hp:160,pas:'HPが毎秒 2.5 自然回復・初期スタンドLv3',mods:{regen:2.5},boost:1,unlock:{money:1000}},
  {id:'oku',part:4,name:'虹川 オク',en:'OKU NIJIKAWA',title:'空間を削る不良',stand:'void',hp:165,pas:'全スタンドの攻撃力 +15%',mods:{dmg:1.15},unlock:{meet:'void'}},
- {id:'rou',part:4,name:'霧辺 ロウ',en:'ROU KIRIBE',title:'取材を愛する天才漫画家',stand:'door',hp:155,pas:'獲得経験値 +20%・攻撃力 +8%・初期スタンドLv3',mods:{xp:1.2,dmg:1.08},boost:2,unlock:{found:12}},
+ {id:'rou',part:4,name:'霧辺 ロウ',en:'ROU KIRIBE',title:'取材を愛する天才漫画家',stand:'door',hp:155,pas:'獲得経験値 +20%・攻撃力 +8%・初期スタンドLv4',mods:{xp:1.2,dmg:1.08},boost:2,unlock:{found:12}},
  {id:'kira',part:4,name:'吉良坂 ヨシ',en:'YOSHI KIRASAKA',title:'平穏を望む会社員',stand:'killer',hp:150,pas:'全スタンドのクールダウン -18%',mods:{cd:.82},unlock:{awaken:'killer'}},
  {id:'haru',part:5,name:'金城 ハル',en:'HARU KANESHIRO',title:'夢を抱くギャングスター',stand:'golden',hp:135,pas:'全スタンドのクールダウン -15%',mods:{cd:.85},unlock:{money:1900}},
  {id:'buchi',part:5,name:'鉤爪 ブチ',en:'BUCHI KAGIZUME',title:'誇り高きギャング幹部',stand:'zipper',hp:150,pas:'全スタンドのクールダウン -12%',mods:{cd:.88},unlock:{meet:'zipper'}},
  {id:'mist',part:5,name:'六道 ミスト',en:'MIST ROKUDO',title:'ゲン担ぎのガンマン',stand:'pistols',hp:140,pas:'獲得経験値 +15%・攻撃力 +10%',mods:{xp:1.15,dmg:1.1},unlock:{meet:'pistols'}},
- {id:'dia',part:5,name:'紅坂 ディア',en:'DIA KOSAKA',title:'正体なき組織のボス',stand:'crimson',hp:170,pas:'全スタンドの攻撃力 +30%・初期スタンドLv2',mods:{dmg:1.3},boost:1,unlock:{awaken:'crimson'}},
+ {id:'dia',part:5,name:'紅坂 ディア',en:'DIA KOSAKA',title:'正体なき組織のボス',stand:'crimson',hp:170,pas:'全スタンドの攻撃力 +30%・初期スタンドLv3',mods:{dmg:1.3},boost:1,unlock:{awaken:'crimson'}},
  {id:'rin',part:6,name:'星野 リン',en:'RIN HOSHINO',title:'石の海から脱出する囚人',stand:'stone',hp:150,pas:'全スタンドの攻撃力 +17%',mods:{dmg:1.17},unlock:{money:3100}},
  {id:'wes',part:6,name:'天野 ウェス',en:'WES AMANO',title:'記憶なき気象使い',stand:'weather',hp:145,pas:'本体の移動速度 +13%・攻撃力 +5%',mods:{spd:1.13,dmg:1.05},unlock:{meet:'weather'}},
  {id:'eru',part:6,name:'雷門 エル',en:'ERU RAIMON',title:'義理堅い姉御',stand:'kiss',hp:155,pas:'全スタンドのクールダウン -13%',mods:{cd:.87},unlock:{boss:20}},
- {id:'enri',part:6,name:'天宮 エンリ',en:'ENRI AMAMIYA',title:'天国を目指す神父',stand:'heaven',hp:160,pas:'クールダウン -18%・移動速度 +15%・初期スタンドLv2',mods:{cd:.82,spd:1.15},boost:1,unlock:{awaken:'heaven'}},
+ {id:'enri',part:6,name:'天宮 エンリ',en:'ENRI AMAMIYA',title:'天国を目指す神父',stand:'heaven',hp:160,pas:'クールダウン -18%・移動速度 +15%・初期スタンドLv3',mods:{cd:.82,spd:1.15},boost:1,unlock:{awaken:'heaven'}},
 ];
 CHARS.forEach(c=>c.look=LOOK[c.id]);
 
@@ -925,7 +928,7 @@ function damageP(d){if(P.inv>0||G.erase>0||G.state!=='play')return;
   if(aw('crimson')&&R()<.35){P.inv=.4;shout(P.x,P.y-44,'予知!','#e0002a',24);return}
   d=Math.max(1,Math.round(d*G.dmgTaken*(aw('parallel')?.5:1)*(aw('diver')?.75:1)));
   if(aw('door')){for(const e of inR(P.x,P.y,220))if(!e.prop){e.stun=Math.max(e.stun||0,5);fx({t:'page',x:e.x,y:e.y-e.r,life:.6})}shout(P.x,P.y-60,'安全装置!','#ffe066',26)}P.hp-=d;P.inv=.5;G.shake=Math.max(G.shake,8);G.hurtF=.35;sfx('hurt');numText(P.x,P.y-24,d,'#ff3355',true);
-  const gl=aw('golden');if(gl){G.src=gl;explode(P.x,P.y,150,60+15*gl.lv,'#ffcc33',1);shout(P.x,P.y-60,'無駄ァッ!!','#ffcc33',30);gl.vis=.6;G.src=null}
+  const gl=aw('golden');if(gl){G.src=gl;explode(P.x,P.y,150,60+15*gl.L,'#ffcc33',1);shout(P.x,P.y-60,'無駄ァッ!!','#ffcc33',30);gl.vis=.6;G.src=null}
   if(P.hp<=0){const dm=aw('diamond');if(dm&&!(dm.revT>0)){dm.revT=60;P.hp=P.max*.6;P.inv=1.5;bigText('完全修復!!','pink');part(P.x,P.y,'#ff7ac8',24,200,4,.6);return}if(P.rev>0){P.rev--;P.hp=1;startRevive();return}P.hp=0;gameOver()}}
 /* ---- 復活演出：一度倒れたら時を止め、鼓動が止まり…再び動き出して復活する（その間は全てが停止） ---- */
 const REV_T=3.4;
@@ -977,155 +980,155 @@ const DEFS=[
 {id:'star',type:0,name:'STAR FIST',jp:'星の白金拳',col:'#8a6bff',sym:'★',cry:'オラオラオラオラッ!!',
  desc:l=>`超高速の拳ラッシュ。一撃${8+3*l}ダメージ × ${6+l}連打`,
  upd(s,dt){if(s.rush>0){s.rush-=dt;if(!s.tg||s.tg.dead)s.tg=near(P.x,P.y,200);if(!s.tg){s.rush=0;return}aimAt(s,s.tg);s.rt-=dt;
-   if(s.rt<=0){s.rt=.055;for(const e of inR(s.tg.x,s.tg.y,44))hurt(e,8+3*s.lv,{kb:22});punchFx(s.tg.x,s.tg.y,s.def.col);sfx('hit')}return}
-  if((s.cd-=dt)<=0){const e=near(P.x,P.y,180);if(!e){s.cd=.15;return}s.tg=e;s.rush=.055*(6+s.lv);s.rt=0;s.cd=1.2*cdm(s);say(s,e.x,e.y-40,'オラオラオラ')}}},
+   if(s.rt<=0){s.rt=.055;for(const e of inR(s.tg.x,s.tg.y,44))hurt(e,8+3*s.L,{kb:22});punchFx(s.tg.x,s.tg.y,s.def.col);sfx('hit')}return}
+  if((s.cd-=dt)<=0){const e=near(P.x,P.y,180);if(!e){s.cd=.15;return}s.tg=e;s.rush=.055*(6+s.L);s.rt=0;s.cd=1.2*cdm(s);say(s,e.x,e.y-40,'オラオラオラ')}}},
 {id:'diamond',type:0,name:'DIAMOND HEART',jp:'金剛の修復',col:'#ff7ac8',sym:'♥',cry:'ドララララァッ!!',
  desc:l=>`重い一撃${22+8*l}。命中した敵1体ごとに本体HPを${(.5+.25*l).toFixed(2)}修復（最大6体分）`,
- upd(s,dt){if((s.cd-=dt)<=0){const e=near(P.x,P.y,170);if(!e){s.cd=.15;return}aimAt(s,e);let n=0;for(const t of inR(e.x,e.y,52)){hurt(t,22+8*s.lv,{kb:90});n++}
-   healP(Math.min(n,6)*(.5+.25*s.lv));punchFx(e.x,e.y,s.def.col);fx({t:'ring',x:e.x,y:e.y,r0:10,r1:60,life:.25,col:s.def.col,lw:4});say(s,e.x,e.y-40,'ドラァッ!');s.cd=1.1*cdm(s);sfx('hit')}}},
+ upd(s,dt){if((s.cd-=dt)<=0){const e=near(P.x,P.y,170);if(!e){s.cd=.15;return}aimAt(s,e);let n=0;for(const t of inR(e.x,e.y,52)){hurt(t,22+8*s.L,{kb:90});n++}
+   healP(Math.min(n,6)*(.5+.25*s.L));punchFx(e.x,e.y,s.def.col);fx({t:'ring',x:e.x,y:e.y,r0:10,r1:60,life:.25,col:s.def.col,lw:4});say(s,e.x,e.y-40,'ドラァッ!');s.cd=1.1*cdm(s);sfx('hit')}}},
 {id:'golden',type:0,name:'GOLDEN LIFE',jp:'黄金の生命',col:'#ffcc33',sym:'✿',cry:'無駄無駄無駄ァッ!!',
  desc:l=>`打撃${16+6*l}＋生命体を${1+Math.floor(l/3)}体創造（同時に最大${2+Math.floor(l/2)}体）。生命体に触れた敵へ反射ダメージ${5+2*l}`,
- upd(s,dt){if((s.cd-=dt)<=0){const e=near(P.x,P.y,170);if(!e){s.cd=.15;return}aimAt(s,e);for(const t of inR(e.x,e.y,44))hurt(t,16+6*s.lv,{kb:60});punchFx(e.x,e.y,s.def.col);
-   const lv=s.lv,cap=2+Math.floor(lv/2),n=Math.min(1+Math.floor(lv/3),cap-G.zn.filter(z=>z.kind==='life'&&!z.dead).length);for(let i=0;i<n;i++)G.zn.push({x:e.x+rnd(-30,30),y:e.y+rnd(-30,30),r:18,life:4+.3*lv,max:4+.3*lv,tick:.5,tt:0,dmg:5+2*lv,opt:{kb:70},kind:'life',ph:R()*TAU,
+ upd(s,dt){if((s.cd-=dt)<=0){const e=near(P.x,P.y,170);if(!e){s.cd=.15;return}aimAt(s,e);for(const t of inR(e.x,e.y,44))hurt(t,16+6*s.L,{kb:60});punchFx(e.x,e.y,s.def.col);
+   const lv=s.L,cap=2+Math.floor(lv/2),n=Math.min(1+Math.floor(lv/3),cap-G.zn.filter(z=>z.kind==='life'&&!z.dead).length);for(let i=0;i<n;i++)G.zn.push({x:e.x+rnd(-30,30),y:e.y+rnd(-30,30),r:18,life:4+.3*lv,max:4+.3*lv,tick:.5,tt:0,dmg:5+2*lv,opt:{kb:70},kind:'life',ph:R()*TAU,
      upd(z,dt){const t=near(z.x,z.y,220);if(t){const a=Math.atan2(t.y-z.y,t.x-z.x);z.x+=Math.cos(a)*60*dt;z.y+=Math.sin(a)*60*dt}},onHit:(z,t)=>part(t.x,t.y,'#9dff6a',2,90,2.5,.3)});
    say(s,e.x,e.y-40,'無駄ァッ!');s.cd=1.3*cdm(s);sfx('hit')}}},
 {id:'zipper',type:0,name:'ZIPPER CUT',jp:'断絶の接吻',col:'#4fa8ff',sym:'Ж',cry:'アリアリアリアリ!!',
  desc:l=>`直線上の敵をジッパーで切断。${22+7*l}ダメージ・防御無視／射程${200+12*l}`,
- upd(s,dt){if((s.cd-=dt)<=0){const e=near(P.x,P.y,240);if(!e){s.cd=.15;return}const a=Math.atan2(e.y-P.y,e.x-P.x),L=200+12*s.lv,x2=P.x+Math.cos(a)*L,y2=P.y+Math.sin(a)*L;
-   for(const t of inR((P.x+x2)/2,(P.y+y2)/2,L/2+10))if(segD2(t.x,t.y,P.x,P.y,x2,y2)<(14+t.r)**2)hurt(t,22+7*s.lv,{pa:1,kb:30});
+ upd(s,dt){if((s.cd-=dt)<=0){const e=near(P.x,P.y,240);if(!e){s.cd=.15;return}const a=Math.atan2(e.y-P.y,e.x-P.x),L=200+12*s.L,x2=P.x+Math.cos(a)*L,y2=P.y+Math.sin(a)*L;
+   for(const t of inR((P.x+x2)/2,(P.y+y2)/2,L/2+10))if(segD2(t.x,t.y,P.x,P.y,x2,y2)<(14+t.r)**2)hurt(t,22+7*s.L,{pa:1,kb:30});
    fx({t:'zip',x:P.x,y:P.y,x2,y2,life:.4,col:s.def.col});s.atk=.3;s.tx=P.x+Math.cos(a)*L*.55;s.ty=P.y+Math.sin(a)*L*.55;say(s,s.tx,s.ty-30,'アリアリ!');s.cd=.95*cdm(s);sfx('hit')}}},
 /* ---- 遠距離・範囲型 ---- */
 {id:'emerald',type:1,name:'EMERALD BARRAGE',jp:'翠玉の弾幕',col:'#2fe08a',sym:'◆',cry:'エメラルドバラージュ!!',
  desc:l=>`360°放射状に翠玉弾${8+2*l}発。各${7+3*l}ダメージ${l>=5?'・二連射':''}`,
- upd(s,dt){const fire=()=>{const n=8+2*s.lv,o=R()*TAU;for(let i=0;i<n;i++)shoot({x:P.x,y:P.y,a:o+i/n*TAU,sp:340,r:7,dmg:7+3*s.lv,life:.95,kind:'emer',col:s.def.col});sfx('shot')};
+ upd(s,dt){const fire=()=>{const n=8+2*s.L,o=R()*TAU;for(let i=0;i<n;i++)shoot({x:P.x,y:P.y,a:o+i/n*TAU,sp:340,r:7,dmg:7+3*s.L,life:.95,kind:'emer',col:s.def.col});sfx('shot')};
   if(s.q>0){s.q-=dt;if(s.q<=0)fire()}
-  if((s.cd-=dt)<=0){if(!near(P.x,P.y,420)){s.cd=.2;return}fire();if(s.lv>=5)s.q=.2;s.cd=1.7*cdm(s);say(s,P.x,P.y-60,'エメラルドバラージュ!')}}},
+  if((s.cd-=dt)<=0){if(!near(P.x,P.y,420)){s.cd=.2;return}fire();if(s.L>=5)s.q=.2;s.cd=1.7*cdm(s);say(s,P.x,P.y-60,'エメラルドバラージュ!')}}},
 {id:'silver',type:1,name:'SILVER RAPIER',jp:'銀の剣針',col:'#d8e4ff',sym:'†',cry:'ホラホラホラホラ!!',
  desc:l=>`直線への超高速刺突${1+Math.floor(l/3)}本。${11+4*l}ダメージ・貫通${2+l}`,
- upd(s,dt){if((s.cd-=dt)<=0){if(!near(P.x,P.y,450)){s.cd=.15;return}const a=faceAng(450),n=1+Math.floor(s.lv/3);
-   for(let i=0;i<n;i++)shoot({x:P.x,y:P.y,a:a+(i-(n-1)/2)*.1,sp:820,r:6,dmg:11+4*s.lv,pierce:2+s.lv,life:.4,kind:'needle',col:s.def.col});
+ upd(s,dt){if((s.cd-=dt)<=0){if(!near(P.x,P.y,450)){s.cd=.15;return}const a=faceAng(450),n=1+Math.floor(s.L/3);
+   for(let i=0;i<n;i++)shoot({x:P.x,y:P.y,a:a+(i-(n-1)/2)*.1,sp:820,r:6,dmg:11+4*s.L,pierce:2+s.L,life:.4,kind:'needle',col:s.def.col});
    s.atk=.15;s.tx=P.x+Math.cos(a)*34;s.ty=P.y+Math.sin(a)*34;fx({t:'thrust',x:P.x,y:P.y,a,life:.15,col:s.def.col});say(s,P.x,P.y-60,'ホラホラ!');s.cd=.62*cdm(s);sfx('shot')}}},
 {id:'aero',type:1,name:'AERO GUNNER',jp:'旋回の機銃',col:'#ff9a3d',sym:'✈',plane:1,cry:'ボラボラボラボラ!!',
  desc:l=>`本体の周囲を旋回し機銃掃射（${Math.round(5+2*l)}ダメ×高速連射）${l>=4?`。${(2.4).toFixed(1)}秒毎に爆撃${20+6*l}`:''}`,
  upd(s,dt){s.ang+=dt*2.4;s.px=P.x+Math.cos(s.ang)*95;s.py=P.y+Math.sin(s.ang)*70;
-  if((s.cd-=dt)<=0){const e=near(s.px,s.py,320);if(e){shoot({x:s.px,y:s.py,a:Math.atan2(e.y-s.py,e.x-s.px)+rnd(-.07,.07),sp:640,r:5,dmg:5+2*s.lv,life:.6,kind:'bullet',col:'#ffd27a'});sfx('shot');s.vis=Math.max(s.vis||0,.5)}s.cd=Math.max(.08,.24-.012*s.lv)*G.cdMul}
-  if(s.lv>=4&&(s.bt=(s.bt||0)-dt)<=0){s.bt=2.4;const e=near(s.px,s.py,280);if(e){s.vis=Math.max(s.vis||0,.5);explode(e.x,e.y,55+4*s.lv,20+6*s.lv,'#ff9a3d');say(s,e.x,e.y-30,'ボラボラ!')}}}},
+  if((s.cd-=dt)<=0){const e=near(s.px,s.py,320);if(e){shoot({x:s.px,y:s.py,a:Math.atan2(e.y-s.py,e.x-s.px)+rnd(-.07,.07),sp:640,r:5,dmg:5+2*s.L,life:.6,kind:'bullet',col:'#ffd27a'});sfx('shot');s.vis=Math.max(s.vis||0,.5)}s.cd=Math.max(.08,.24-.012*s.L)*G.cdMul}
+  if(s.L>=4&&(s.bt=(s.bt||0)-dt)<=0){s.bt=2.4;const e=near(s.px,s.py,280);if(e){s.vis=Math.max(s.vis||0,.5);explode(e.x,e.y,55+4*s.L,20+6*s.L,'#ff9a3d');say(s,e.x,e.y-30,'ボラボラ!')}}}},
 {id:'pistols',type:1,name:'SIX PISTOLETS',jp:'六連の跳弾',col:'#ffe066',sym:'❻',cry:'イィーハーッ!!',
  desc:l=>`敵の間を${2+l}回跳ね返る弾丸。各${13+4*l}ダメージ${l>=5?'・2発同時':''}`,
- upd(s,dt){if((s.cd-=dt)<=0){const e=near(P.x,P.y,380);if(!e){s.cd=.15;return}const n=s.lv>=5?2:1;
-   for(let i=0;i<n;i++)shoot({x:P.x,y:P.y,a:Math.atan2(e.y-P.y,e.x-P.x)+(i?.3:0),sp:650,r:5,dmg:13+4*s.lv,life:.7,kind:'pbullet',col:s.def.col,bn:2+s.lv,trail:1,
+ upd(s,dt){if((s.cd-=dt)<=0){const e=near(P.x,P.y,380);if(!e){s.cd=.15;return}const n=s.L>=5?2:1;
+   for(let i=0;i<n;i++)shoot({x:P.x,y:P.y,a:Math.atan2(e.y-P.y,e.x-P.x)+(i?.3:0),sp:650,r:5,dmg:13+4*s.L,life:.7,kind:'pbullet',col:s.def.col,bn:2+s.L,trail:1,
      onHit(p,t){if(p.bn<=0)return false;const nx=near(t.x,t.y,260,p.hit);if(!nx)return false;p.bn--;const a=Math.atan2(nx.y-t.y,nx.x-t.x);p.x=t.x;p.y=t.y;p.vx=Math.cos(a)*p.sp;p.vy=Math.sin(a)*p.sp;p.rot=a;p.life=.6;part(t.x,t.y,'#ffe066',4,200,2,.2);return true}});
    say(s,P.x,P.y-60,'イィーハー!');s.cd=1.05*cdm(s);sfx('shot')}}},
 {id:'plankton',type:1,name:'PLANKTON SHOT',jp:'微生物の爆弾',col:'#3dd6ff',sym:'✺',cry:'ボゴォォッ!!',
  desc:l=>`着弾で爆発するプランクトン弾${1+Math.floor(l/3)}発。爆発${18+6*l}・範囲${45+5*l}`,
- upd(s,dt){if((s.cd-=dt)<=0){if(!near(P.x,P.y,360)){s.cd=.15;return}const n=1+Math.floor(s.lv/3),lv=s.lv,c=s.def.col;
+ upd(s,dt){if((s.cd-=dt)<=0){if(!near(P.x,P.y,360)){s.cd=.15;return}const n=1+Math.floor(s.L/3),lv=s.L,c=s.def.col;
    for(let i=0;i<n;i++){const e=randNear(P.x,P.y,360);if(!e)break;shoot({x:P.x,y:P.y,a:Math.atan2(e.y-P.y,e.x-P.x),sp:300,r:9,dmg:0,life:1.4,kind:'plank',col:c,trail:1,
      onHit(p){explode(p.x,p.y,45+5*lv,18+6*lv,c);return false},onEnd(p){explode(p.x,p.y,45+5*lv,18+6*lv,c,1)}})}
    s.cd=1.45*cdm(s);sfx('shot')}}},
 {id:'violet',type:1,name:'VIOLET HAZE',jp:'殺人ウイルス',col:'#b84dff',sym:'☣',cry:'ブシュウウウ…!!',
  desc:l=>`ウイルスカプセルを投擲。半径${50+5*l}の霧が毎秒${Math.round((3+1.2*l)*4)}ダメージ＆敵を弱体化`,
- upd(s,dt){if((s.cd-=dt)<=0){const e=randNear(P.x,P.y,330);if(!e){s.cd=.2;return}const lv=s.lv,c=s.def.col;
+ upd(s,dt){if((s.cd-=dt)<=0){const e=randNear(P.x,P.y,330);if(!e){s.cd=.2;return}const lv=s.L,c=s.def.col;
    G.pr.push({x:P.x,y:P.y,sx:P.x,sy:P.y,vx:(e.x-P.x)/.5,vy:(e.y-P.y)/.5,life:.5,max:.5,kind:'capsule',nocol:1,col:c,hit:new Set(),rot:0,
      onEnd(p){fx({t:'ring',x:p.x,y:p.y,r0:10,r1:50+5*lv,life:.3,col:c,lw:4});G.zn.push({x:p.x,y:p.y,r:50+5*lv,life:3.5+.2*lv,max:3.5+.2*lv,tick:.25,tt:0,dmg:3+1.2*lv,kind:'virus',col:c,onHit:(z,t)=>{t.weak=Math.max(t.weak,1)}})}});
    say(s,e.x,e.y-30,'ブシュウウ');s.cd=3.6*cdm(s)}}},
 {id:'cross',type:1,name:'CROSSFIRE RED',jp:'紅蓮の十字',col:'#ff4b2b',sym:'☥',cry:'クロスファイヤーッ!!',
  desc:l=>`敵を追尾する火炎の十字${2+Math.floor(l/2)}発。命中で炎上爆発${14+5*l}`,
- upd(s,dt){if((s.cd-=dt)<=0){if(!near(P.x,P.y,450)){s.cd=.2;return}const n=2+Math.floor(s.lv/2),lv=s.lv,c=s.def.col,o=R()*TAU;
+ upd(s,dt){if((s.cd-=dt)<=0){if(!near(P.x,P.y,450)){s.cd=.2;return}const n=2+Math.floor(s.L/2),lv=s.L,c=s.def.col,o=R()*TAU;
    for(let i=0;i<n;i++)shoot({x:P.x,y:P.y,a:o+i/n*TAU,sp:250,r:10,dmg:14+5*lv,life:2.2,kind:'ankh',col:c,homing:4.5,trail:1,onHit(p){explode(p.x,p.y,42,8+3*lv,c,1);return false}});
    say(s,P.x,P.y-60,'クロスファイヤー!');s.cd=1.6*cdm(s);sfx('shot')}}},
 {id:'weather',type:1,name:'WEATHER STORM',jp:'天候の雷撃',col:'#9ad0ff',sym:'ϟ',cry:'バリバリバリィッ!!',
  desc:l=>`画面内の敵${2+Math.floor(l/2)}体に落雷${20+7*l}${l>=4?'。さらに近くの敵へ連鎖':''}`,
- upd(s,dt){if((s.cd-=dt)<=0){if(!randVisible()){s.cd=.2;return}const n=2+Math.floor(s.lv/2),d=20+7*s.lv;
+ upd(s,dt){if((s.cd-=dt)<=0){if(!randVisible()){s.cd=.2;return}const n=2+Math.floor(s.L/2),d=20+7*s.L;
    for(let i=0;i<n;i++){const e=randVisible();if(!e)break;const pts=[];let x=e.x+rnd(-40,40),y=e.y-VH*.6;for(let k=0;k<=8;k++){pts.push([x+(k===8?0:rnd(-18,18)),y]);x+=(e.x-x)/(8-k||1);y+=(e.y-y)/(8-k||1)}pts[pts.length-1]=[e.x,e.y];
      fx({t:'bolt',pts,life:.22,col:s.def.col});for(const t of inR(e.x,e.y,36))hurt(t,d);part(e.x,e.y,'#cfe8ff',6,200,2.5,.3);
-     if(s.lv>=4){const c=near(e.x,e.y,160,new Set([e]));if(c){fx({t:'bolt',pts:[[e.x,e.y],[(e.x+c.x)/2+rnd(-15,15),(e.y+c.y)/2+rnd(-15,15)],[c.x,c.y]],life:.2,col:s.def.col});hurt(c,d*.6)}}}
+     if(s.L>=4){const c=near(e.x,e.y,160,new Set([e]));if(c){fx({t:'bolt',pts:[[e.x,e.y],[(e.x+c.x)/2+rnd(-15,15),(e.y+c.y)/2+rnd(-15,15)],[c.x,c.y]],life:.2,col:s.def.col});hurt(c,d*.6)}}}
    G.shake=Math.max(G.shake,3);s.cd=1.9*cdm(s);sfx('zap')}}},
 /* ---- 特殊型 ---- */
 {id:'time',type:2,name:'THE TIME',jp:'停止する世界',col:'#ffd23f',sym:'⌛',cry:'時よ止まれッ!!',
  desc:l=>`${(2.5+.3*l).toFixed(1)}秒間 時を止める（CD${Math.max(10,18-.8*l).toFixed(1)}秒）。停止中にナイフ${10+2*l}本（各${14+5*l}）を配置`,
  upd(s,dt){if(G.timeStop>0)return;if((s.cd-=dt)<=0){if(!near(P.x,P.y,380)){s.cd=.5;return}
-   G.timeStop=G.tsMax=2.5+.3*s.lv+G.tsBonus;G.tsSec=0;bigText('時よ止まれ!!','gold');sfx('tstop');fx({t:'tsring',x:P.x,y:P.y,life:.6});
-   const n=10+2*s.lv,tg=nearN(P.x,P.y,520,n);for(let i=0;i<n;i++){const ra=i/n*TAU,x=P.x+Math.cos(ra)*(60+(i%2)*18),y=P.y+Math.sin(ra)*(60+(i%2)*18),e=tg[i%Math.max(1,tg.length)];
-     shoot({x,y,a:e?Math.atan2(e.y-y,e.x-x):ra,sp:720,r:6,dmg:14+5*s.lv,pierce:1,life:1.1,kind:'knife',col:'#eef',frozen:1})}
-   s.cd=Math.max(10,18-.8*s.lv)*cdm(s)}}},
+   G.timeStop=G.tsMax=2.5+.3*s.L+G.tsBonus;G.tsSec=0;bigText('時よ止まれ!!','gold');sfx('tstop');fx({t:'tsring',x:P.x,y:P.y,life:.6});
+   const n=10+2*s.L,tg=nearN(P.x,P.y,520,n);for(let i=0;i<n;i++){const ra=i/n*TAU,x=P.x+Math.cos(ra)*(60+(i%2)*18),y=P.y+Math.sin(ra)*(60+(i%2)*18),e=tg[i%Math.max(1,tg.length)];
+     shoot({x,y,a:e?Math.atan2(e.y-y,e.x-x):ra,sp:720,r:6,dmg:14+5*s.L,pierce:1,life:1.1,kind:'knife',col:'#eef',frozen:1})}
+   s.cd=Math.max(10,18-.8*s.L)*cdm(s)}}},
 {id:'killer',type:2,name:'KILLER BOMB',jp:'触れたものを爆弾に',col:'#ff6fae',sym:'☠',cry:'カチッ…ドグォォン!!',
  desc:l=>`敵${1+Math.floor(l/3)}体に触れて爆弾化。0.7秒後（または撃破時）に爆破${30+10*l}・範囲${55+6*l}`,
- upd(s,dt){if((s.cd-=dt)<=0){const tg=nearN(P.x,P.y,280,6).filter(e=>!(e.bomb>0)).slice(0,1+Math.floor(s.lv/3));if(!tg.length){s.cd=.2;return}
-   for(const e of tg){e.bomb=.7;e.bombSrc=s;e.bombD=30+10*s.lv;e.bombR=55+6*s.lv}aimAt(s,tg[0]);say(s,tg[0].x,tg[0].y-34,'カチッ');s.cd=2.4*cdm(s)}}},
+ upd(s,dt){if((s.cd-=dt)<=0){const tg=nearN(P.x,P.y,280,6).filter(e=>!(e.bomb>0)).slice(0,1+Math.floor(s.L/3));if(!tg.length){s.cd=.2;return}
+   for(const e of tg){e.bomb=.7;e.bombSrc=s;e.bombD=30+10*s.L;e.bombR=55+6*s.L}aimAt(s,tg[0]);say(s,tg[0].x,tg[0].y-34,'カチッ');s.cd=2.4*cdm(s)}}},
 {id:'crimson',type:2,name:'CRIMSON EPITAPH',jp:'消し飛ぶ時間',col:'#e0002a',sym:'✠',cry:'時間を消し飛ばすッ!!',
  desc:l=>`時間を消し飛ばし2.5秒間 完全無敵。終了時、半径${180+12*l}の敵に${45+15*l}（CD${Math.max(8,14-.6*l).toFixed(1)}秒）`,
- upd(s,dt){if(G.erase>0)return;if((s.cd-=dt)<=0){if(!near(P.x,P.y,240)){s.cd=.3;return}G.erase=2.5;G.eraseS=s;cntAdd('erase',1);bigText('「結果」だけだ!!','red long');sfx('cut');s.cd=Math.max(8,14-.6*s.lv)*cdm(s)}}},
+ upd(s,dt){if(G.erase>0)return;if((s.cd-=dt)<=0){if(!near(P.x,P.y,240)){s.cd=.3;return}G.erase=2.5;G.eraseS=s;cntAdd('erase',1);bigText('「結果」だけだ!!','red long');sfx('cut');s.cd=Math.max(8,14-.6*s.L)*cdm(s)}}},
 {id:'void',type:2,name:'VOID HAND',jp:'空間を削る右手',col:'#5d7bff',sym:'◐',cry:'ガオンッ!!',
  desc:l=>`前方扇状${130+6*l}の空間ごと敵を削り取る${30+10*l}（防御無視）。削られた敵は3秒間 鈍足＆被ダメージ+30%`,
- upd(s,dt){if((s.cd-=dt)<=0){if(!near(P.x,P.y,200)){s.cd=.15;return}const a=faceAng(200),r=130+6*s.lv;
-   for(const e of inR(P.x,P.y,r))if(Math.abs(angDiff(Math.atan2(e.y-P.y,e.x-P.x),a))<.95){hurt(e,30+10*s.lv,{pa:1});e.weak=Math.max(e.weak,3)}
+ upd(s,dt){if((s.cd-=dt)<=0){if(!near(P.x,P.y,200)){s.cd=.15;return}const a=faceAng(200),r=130+6*s.L;
+   for(const e of inR(P.x,P.y,r))if(Math.abs(angDiff(Math.atan2(e.y-P.y,e.x-P.x),a))<.95){hurt(e,30+10*s.L,{pa:1});e.weak=Math.max(e.weak,3)}
    fx({t:'erase',x:P.x,y:P.y,a,r,life:.35,col:s.def.col});
    s.atk=.25;s.tx=P.x+Math.cos(a)*40;s.ty=P.y+Math.sin(a)*40;say(s,P.x+Math.cos(a)*80,P.y+Math.sin(a)*80-20,'ガオンッ');s.cd=2*cdm(s);sfx('cut')}}},
 {id:'disc',type:2,name:'DISC SERPENT',jp:'記憶の円盤',col:'#e6e6e6',sym:'◎',cry:'DISCを抜き取るッ!',
  desc:l=>`貫通するDISC${2+Math.floor(l/2)}枚（各${10+3*l}）。命中した敵の能力を奪い6秒間 鈍足＆被ダメージ+30%`,
- upd(s,dt){if((s.cd-=dt)<=0){if(!near(P.x,P.y,420)){s.cd=.2;return}const a=faceAng(),n=2+Math.floor(s.lv/2);
-   for(let i=0;i<n;i++)shoot({x:P.x,y:P.y,a:a+(i-(n-1)/2)*.22,sp:390,r:10,dmg:10+3*s.lv,pierce:3+s.lv,life:1.3,kind:'disc',col:s.def.col,onHit:(p,e)=>{e.weak=6;return false}});
+ upd(s,dt){if((s.cd-=dt)<=0){if(!near(P.x,P.y,420)){s.cd=.2;return}const a=faceAng(),n=2+Math.floor(s.L/2);
+   for(let i=0;i<n;i++)shoot({x:P.x,y:P.y,a:a+(i-(n-1)/2)*.22,sp:390,r:10,dmg:10+3*s.L,pierce:3+s.L,life:1.3,kind:'disc',col:s.def.col,onHit:(p,e)=>{e.weak=6;return false}});
    say(s,P.x,P.y-60,'DISC!');s.cd=2.5*cdm(s);sfx('shot')}}},
 {id:'nail',type:2,name:'NAIL SPIN',jp:'回転する爪弾',col:'#ff8ad8',sym:'✧',cry:'ACT 4 ─ 止まらぬ回転!!',act:nailAct,
  desc:l=>{const a=nailAct(l);return`【ACT${a}】回転する爪弾を${a>=3?6:4}方向へ連射。${Math.round((7+2.5*l)*(a>=4?1.1:1))}ダメージ${a>=2?'・追尾':''}${a>=4?'・止まらぬ回転（大貫通）':''}`},
- upd(s,dt){s.ang+=dt*1.6;if((s.cd-=dt)<=0){if(!near(P.x,P.y,450)){s.cd=.15;return}const act=nailAct(s.lv),n=act>=3?6:4;
-   for(let i=0;i<n;i++)shoot({x:P.x,y:P.y,a:s.ang+i/n*TAU,sp:act>=4?430:360,r:act>=4?10:6,dmg:(7+2.5*s.lv)*(act>=4?1.1:1),pierce:act>=4?15:act,life:1.1,kind:'nail',col:s.def.col,homing:act>=2?2.6:0,spin:18,big:act>=4});
+ upd(s,dt){s.ang+=dt*1.6;if((s.cd-=dt)<=0){if(!near(P.x,P.y,450)){s.cd=.15;return}const act=nailAct(s.L),n=act>=3?6:4;
+   for(let i=0;i<n;i++)shoot({x:P.x,y:P.y,a:s.ang+i/n*TAU,sp:act>=4?430:360,r:act>=4?10:6,dmg:(7+2.5*s.L)*(act>=4?1.1:1),pierce:act>=4?15:act,life:1.1,kind:'nail',col:s.def.col,homing:act>=2?2.6:0,spin:18,big:act>=4});
    s.cd=1.05*cdm(s);sfx('shot')}}},
 {id:'parallel',type:2,name:'PARALLEL D4',jp:'並行世界の分身',col:'#3dffe0',sym:'⧉',cry:'ドジャァァ〜ン',
  desc:l=>`並行世界の自分を${1+Math.floor(l/3)}体召喚。敵とめり込み消滅爆発${40+12*l}（CD${Math.max(3.5,7-.35*l).toFixed(1)}秒）`,
- upd(s,dt){if((s.cd-=dt)<=0){if(!near(P.x,P.y,400)){s.cd=.2;return}const n=1+Math.floor(s.lv/3),lv=s.lv;
+ upd(s,dt){if((s.cd-=dt)<=0){if(!near(P.x,P.y,400)){s.cd=.2;return}const n=1+Math.floor(s.L/3),lv=s.L;
    for(let i=0;i<n;i++){G.zn.push({x:P.x+rnd(-40,40),y:P.y+rnd(-40,40),r:13,life:7,max:7,kind:'clone',face:1,
      upd(z,dt){const e=near(z.x,z.y,420);if(!e)return;const dx=e.x-z.x,dy=e.y-z.y,d=Math.hypot(dx,dy)||1;z.x+=dx/d*175*dt;z.y+=dy/d*175*dt;z.face=dx<0?-1:1;
        if(d<e.r+z.r){explode(z.x,z.y,62,40+12*lv,'#3dffe0');shout(z.x,z.y-20,'めり込み!','#3dffe0',26);z.dead=true}}});part(P.x,P.y,'#3dffe0',8,160)}
-   say(s,P.x,P.y-60,'ドジャァァン');s.cd=Math.max(3.5,7-.35*s.lv)*cdm(s)}}},
+   say(s,P.x,P.y-60,'ドジャァァン');s.cd=Math.max(3.5,7-.35*s.L)*cdm(s)}}},
 {id:'heaven',type:2,name:'HEAVEN ACCEL',jp:'加速する天国',col:'#c8f0ff',sym:'∞',cry:'時は加速するッ!!',
  desc:l=>`本体速度+${5*l}%・全スタンドのCD-${(3.5*l).toFixed(1)}%。${Math.max(4,8-.4*l).toFixed(1)}秒毎に加速衝撃波${18+6*l}`,
- upd(s,dt){if((s.cd-=dt)<=0){s.cd=Math.max(4,8-.4*s.lv);if(!near(P.x,P.y,300))return;s.vis=.75;const r=150+10*s.lv;for(const e of inR(P.x,P.y,r))hurt(e,18+6*s.lv,{kb:160});
+ upd(s,dt){if((s.cd-=dt)<=0){s.cd=Math.max(4,8-.4*s.L);if(!near(P.x,P.y,300))return;s.vis=.75;const r=150+10*s.L;for(const e of inR(P.x,P.y,r))hurt(e,18+6*s.L,{kb:160});
    fx({t:'clock',x:P.x,y:P.y,r,life:.5,col:s.def.col});for(let i=0;i<18;i++){const a=R()*TAU;G.pt.push({x:P.x,y:P.y,vx:Math.cos(a)*600,vy:Math.sin(a)*600,life:.3,max:.3,s:2,col:'#e9fbff'})}say(s,P.x,P.y-60,'加速!!');sfx('cut')}}},
 /* ---- 追加スタンド ---- */
 {id:'door',type:2,name:'PAGE DOOR',jp:'本になる扉',col:'#ffe066',sym:'✎',cry:'書き込んだッ!!',
  desc:l=>`近くの敵${3+Math.floor(l/3)}体を本にして${(3+.3*l).toFixed(1)}秒間 行動停止＋被ダメージ増加。${20+7*l}ダメージ`,
- upd(s,dt){if((s.cd-=dt)<=0){const tg=nearN(P.x,P.y,240,3+Math.floor(s.lv/3));if(!tg.length){s.cd=.2;return}
-   for(const e of tg){hurt(e,20+7*s.lv);if(e.dead)continue;e.stun=Math.max(e.stun||0,3+.3*s.lv);e.weak=Math.max(e.weak,3+.3*s.lv);fx({t:'page',x:e.x,y:e.y-e.r,life:.6})}
+ upd(s,dt){if((s.cd-=dt)<=0){const tg=nearN(P.x,P.y,240,3+Math.floor(s.L/3));if(!tg.length){s.cd=.2;return}
+   for(const e of tg){hurt(e,20+7*s.L);if(e.dead)continue;e.stun=Math.max(e.stun||0,3+.3*s.L);e.weak=Math.max(e.weak,3+.3*s.L);fx({t:'page',x:e.x,y:e.y-e.r,life:.6})}
    aimAt(s,tg[0]);say(s,tg[0].x,tg[0].y-36,'書き込んだ!');s.cd=1.8*cdm(s);sfx('cut')}}},
 {id:'stone',type:0,name:'STONE STRING',jp:'石の糸',col:'#3dbfff',sym:'✚',cry:'オラオラオラァッ!!',
  desc:l=>`糸を伸ばして敵${2+Math.floor(l/3)}体を同時に打ち据える。各${14+5*l}ダメージ＋鈍足`,
- upd(s,dt){if((s.cd-=dt)<=0){const tg=nearN(P.x,P.y,280,2+Math.floor(s.lv/3));if(!tg.length){s.cd=.15;return}
-   for(const e of tg){fx({t:'bolt',pts:[[P.x,P.y],[(P.x+e.x)/2+rnd(-30,30),(P.y+e.y)/2+rnd(-30,30)],[e.x,e.y]],life:.25,col:s.def.col});for(const t of inR(e.x,e.y,28))hurt(t,14+5*s.lv,{kb:30});e.weak=Math.max(e.weak,1.2)}
+ upd(s,dt){if((s.cd-=dt)<=0){const tg=nearN(P.x,P.y,280,2+Math.floor(s.L/3));if(!tg.length){s.cd=.15;return}
+   for(const e of tg){fx({t:'bolt',pts:[[P.x,P.y],[(P.x+e.x)/2+rnd(-30,30),(P.y+e.y)/2+rnd(-30,30)],[e.x,e.y]],life:.25,col:s.def.col});for(const t of inR(e.x,e.y,28))hurt(t,14+5*s.L,{kb:30});e.weak=Math.max(e.weak,1.2)}
    aimAt(s,tg[0]);say(s,tg[0].x,tg[0].y-36,'オラオラ!');s.cd=1*cdm(s);sfx('hit')}}},
 {id:'kiss',type:2,name:'STICKER KISS',jp:'シールの複製',col:'#ff5c8a',sym:'♡',cry:'剥がすと元に戻るッ!',
  desc:l=>`敵${2+Math.floor(l/3)}体にシールを貼り${28+9*l}ダメージ。1秒後に剥がすと同じダメージをもう一度`,
- upd(s,dt){if((s.cd-=dt)<=0){const tg=nearN(P.x,P.y,260,6).filter(e=>!(e.stick>0)).slice(0,2+Math.floor(s.lv/3));if(!tg.length){s.cd=.2;return}
-   for(const e of tg){const d=28+9*s.lv;hurt(e,d);if(e.dead)continue;e.stick=1;e.stickD=d;e.stickSrc=s}aimAt(s,tg[0]);say(s,tg[0].x,tg[0].y-36,'ペタッ');s.cd=1.3*cdm(s);sfx('hit')}}},
+ upd(s,dt){if((s.cd-=dt)<=0){const tg=nearN(P.x,P.y,260,6).filter(e=>!(e.stick>0)).slice(0,2+Math.floor(s.L/3));if(!tg.length){s.cd=.2;return}
+   for(const e of tg){const d=28+9*s.L;hurt(e,d);if(e.dead)continue;e.stick=1;e.stickD=d;e.stickSrc=s}aimAt(s,tg[0]);say(s,tg[0].x,tg[0].y-36,'ペタッ');s.cd=1.3*cdm(s);sfx('hit')}}},
 {id:'hermit',type:1,name:'HERMIT VINE',jp:'紫の茨',col:'#b84dff',sym:'❦',cry:'茨よ、走れッ!!',
  desc:l=>`茨を伸ばし敵${3+Math.floor(l/2)}体へ波紋を流す。各${14+6*l}ダメージ（ボスに+50%）`,
- upd(s,dt){if((s.cd-=dt)<=0){const tg=nearN(P.x,P.y,320,3+Math.floor(s.lv/2));if(!tg.length){s.cd=.2;return}
-   for(const e of tg){fx({t:'bolt',pts:[[P.x,P.y],[(P.x*2+e.x)/3+rnd(-25,25),(P.y*2+e.y)/3+rnd(-25,25)],[(P.x+e.x*2)/3+rnd(-25,25),(P.y+e.y*2)/3+rnd(-25,25)],[e.x,e.y]],life:.3,col:s.def.col});hurt(e,(14+6*s.lv)*(e.type==='boss'?1.5:1));part(e.x,e.y,'#ffe066',3,120,2,.3)}
+ upd(s,dt){if((s.cd-=dt)<=0){const tg=nearN(P.x,P.y,320,3+Math.floor(s.L/2));if(!tg.length){s.cd=.2;return}
+   for(const e of tg){fx({t:'bolt',pts:[[P.x,P.y],[(P.x*2+e.x)/3+rnd(-25,25),(P.y*2+e.y)/3+rnd(-25,25)],[(P.x+e.x*2)/3+rnd(-25,25),(P.y+e.y*2)/3+rnd(-25,25)],[e.x,e.y]],life:.3,col:s.def.col});hurt(e,(14+6*s.L)*(e.type==='boss'?1.5:1));part(e.x,e.y,'#ffe066',3,120,2,.3)}
    say(s,P.x,P.y-60,'波紋!');s.vis=Math.max(s.vis||0,.5);s.cd=1*cdm(s);sfx('zap')}}},
 {id:'fool',type:1,name:'SAND FOOL',jp:'砂の愚者',col:'#d8c070',sym:'☗',cry:'ガルルルッ!!',
  desc:l=>`砂の散弾${6+l}発を扇状に放ち${9+3*l}ダメージ＆大きく吹き飛ばす`,
- upd(s,dt){if((s.cd-=dt)<=0){if(!near(P.x,P.y,320)){s.cd=.2;return}const a=faceAng(320),n=6+s.lv;
-   for(let i=0;i<n;i++)shoot({x:P.x,y:P.y,a:a+(i-(n-1)/2)*.12+rnd(-.05,.05),sp:rnd(420,520),r:7,dmg:9+3*s.lv,pierce:1,life:.5,kind:'sand',col:s.def.col,opt:{kb:120}});
+ upd(s,dt){if((s.cd-=dt)<=0){if(!near(P.x,P.y,320)){s.cd=.2;return}const a=faceAng(320),n=6+s.L;
+   for(let i=0;i<n;i++)shoot({x:P.x,y:P.y,a:a+(i-(n-1)/2)*.12+rnd(-.05,.05),sp:rnd(420,520),r:7,dmg:9+3*s.L,pierce:1,life:.5,kind:'sand',col:s.def.col,opt:{kb:120}});
    say(s,P.x,P.y-60,'ガルル!');s.vis=Math.max(s.vis||0,.5);s.cd=1.4*cdm(s);sfx('shot')}}},
 {id:'echoes',type:2,name:'ECHO ACT',jp:'響く擬音',col:'#7dff9a',sym:'♪',cry:'重くなれッ!',
  desc:l=>`敵${3+Math.floor(l/3)}体に擬音を貼り付け6秒間 毎秒${(5+2*l)*3}の継続ダメージ${l>=5?'。Lv5～：さらに重くして足止め':''}`,
- upd(s,dt){if((s.cd-=dt)<=0){const tg=nearN(P.x,P.y,300,8).filter(e=>!(e.echo>0)).slice(0,3+Math.floor(s.lv/3));if(!tg.length){s.cd=.2;return}
-   for(const e of tg){e.echo=6;e.echoT=0;e.echoD=5+2*s.lv;e.echoSrc=s;if(s.lv>=5)e.stun=Math.max(e.stun||0,2)}
-   say(s,tg[0].x,tg[0].y-36,s.lv>=5?'ズシィン':'ドジュウ');s.vis=Math.max(s.vis||0,.5);s.cd=1.5*cdm(s);sfx('shot')}}},
+ upd(s,dt){if((s.cd-=dt)<=0){const tg=nearN(P.x,P.y,300,8).filter(e=>!(e.echo>0)).slice(0,3+Math.floor(s.L/3));if(!tg.length){s.cd=.2;return}
+   for(const e of tg){e.echo=6;e.echoT=0;e.echoD=5+2*s.L;e.echoSrc=s;if(s.L>=5)e.stun=Math.max(e.stun||0,2)}
+   say(s,tg[0].x,tg[0].y-36,s.L>=5?'ズシィン':'ドジュウ');s.vis=Math.max(s.vis||0,.5);s.cd=1.5*cdm(s);sfx('shot')}}},
 {id:'moody',type:2,name:'MOODY REPLAY',jp:'過去の再生',col:'#8a6bff',sym:'▶',cry:'リプレイだッ!',
  desc:l=>`1.5秒前の本体を再生する分身を${(4.5+.3*l).toFixed(1)}秒間出現。周囲の敵へ毎秒${(8+3*l)*4}ダメージ`,
- upd(s,dt){if((s.cd-=dt)<=0){if(!near(P.x,P.y,350)){s.cd=.2;return}const lv=s.lv,n=s.aw?2:1;
+ upd(s,dt){if((s.cd-=dt)<=0){if(!near(P.x,P.y,350)){s.cd=.2;return}const lv=s.L,n=s.aw?2:1;
    for(let k=0;k<n;k++){const h=P.hist[k*6]||{x:P.x,y:P.y},life=4.5+.3*lv;G.zn.push({x:h.x,y:h.y,r:60,life,max:life,tick:.25,tt:0,dmg:8+3*lv,kind:'replay',col:s.def.col,face:P.face,look:G.ch.look})}
    say(s,P.x,P.y-60,'リプレイ');s.vis=Math.max(s.vis||0,.5);s.cd=3.2*cdm(s);sfx('cut')}}},
 {id:'diver',type:0,name:'DEEP DIVER',jp:'潜行する拳',col:'#ff8ad8',sym:'⚓',cry:'潜行して…叩くッ!',
  desc:l=>`敵${1+Math.floor(l/4)}体の体内に潜行し、0.4秒後に内側から破壊${40+13*l}（周囲にも半分）`,
- upd(s,dt){if((s.cd-=dt)<=0){const tg=nearN(P.x,P.y,220,1+Math.floor(s.lv/4));if(!tg.length){s.cd=.15;return}
-   for(const e of tg){e.dive=.4;e.diveD=40+13*s.lv;e.diveSrc=s}aimAt(s,tg[0]);say(s,tg[0].x,tg[0].y-36,'潜行!');s.cd=1.4*cdm(s);sfx('hit')}}},
+ upd(s,dt){if((s.cd-=dt)<=0){const tg=nearN(P.x,P.y,220,1+Math.floor(s.L/4));if(!tg.length){s.cd=.15;return}
+   for(const e of tg){e.dive=.4;e.diveD=40+13*s.L;e.diveSrc=s}aimAt(s,tg[0]);say(s,tg[0].x,tg[0].y-36,'潜行!');s.cd=1.4*cdm(s);sfx('hit')}}},
 ];
 DEFS.forEach((d,i)=>{d.spr=mkStandSprite(d,i);d.img=d.spr.toDataURL()});
 $('marq').textContent=DEFS.map(d=>d.name+'「'+d.jp+'」').join('　✦　');
 
-function mkStand(def){return{def,t0:G.t,dmg:0,kills:0,lv:1,cd:.4,sayT:0,atk:0,sx:P.x,sy:P.y-30,tx:0,ty:0,ang:R()*TAU,rush:0,rt:0,q:0,px:P.x,py:P.y}}
+function mkStand(def){return{get L(){return effLv(this.lv)},def,t0:G.t,dmg:0,kills:0,lv:1,cd:.4,sayT:0,atk:0,sx:P.x,sy:P.y-30,tx:0,ty:0,ang:R()*TAU,rush:0,rt:0,q:0,px:P.x,py:P.y}}
 /* ================= シナジー：特定のスタンドを揃えると発動 ================= */
 const SYN=[
  {id:'p3',name:'スターダストクルセイダース',tag:'3部',col:'#8a6bff',mem:['star','emerald','silver','cross','time','hermit','fool'],
@@ -1168,7 +1171,7 @@ const TRAIN=[
 makeStatImgs(TRAIN);
 const puLv=id=>SAVE.pu[id]||0,puTotal=()=>TRAIN.reduce((a,t)=>a+puLv(t.id),0);
 const puCost=t=>t.base*(puLv(t.id)+1)+Math.floor(t.base*.04*puTotal());
-// キャラ強化：固有能力を最大3段階まで強化（3段階目は初期スタンドLv+1で出陣）
+// キャラ強化：固有能力を最大3段階まで強化（3段階目は初期スタンドLvアップで出陣）
 const CM_COST=[750,1900,3750];
 // スタンド強化（やり込み用の奥の手）：スタンドごとに攻撃力+1%／段階、最大20段階。
 // 基本ステータスの攻撃力の最終段階（割増し込みで全スタンド+5%に約2,650）を1体+1%に換算した費用の約1.4倍から始まるよう 120×段階 に設定
@@ -1222,7 +1225,7 @@ function achNotice(a){const d=document.createElement('div');d.className='unlock 
   d.innerHTML=`<div class="stg">実績</div><div><small>ACHIEVEMENT!! ─ 称号「${a.t}」</small><b>${a.d}</b><span>報酬 ◎${a.m.toLocaleString()} 獲得</span></div>`;pushNotice(d);sfx('gold')}
 const titleName=()=>{const a=ACH.find(x=>x.id===SAVE.title);return a?a.t:''};
 
-function recalc(){const h=G.st.find(s=>s.def.id==='heaven'),l=h?h.lv:0,md=G.md,b=G.bonus,u=puLv,{e,act}=synEffects();
+function recalc(){const h=G.st.find(s=>s.def.id==='heaven'),l=h?h.L:0,md=G.md,b=G.bonus,u=puLv,{e,act}=synEffects();
   G.dmgMul=DIFF.pow*(md.dmg||1)*(1+.06*b.pow)*(1+.05*u('pow'))*(1+e.dmg);
   G.xpMul=(md.xp||1)*(1+.06*b.xp)*(1+.04*u('xp'))*(1+e.xp);G.goldMul=1.1*(1+.08*b.gold)*(1+.1*u('gold'))*(G.hard?HARD.gold:1);
   G.dmgTaken=Math.pow(.96,b.arm)*Math.pow(.96,u('arm'))*(1-e.arm);G.weakMul=aw('disc')?1.7:1.3;
@@ -1603,7 +1606,7 @@ function pickStage(i){const s=STAGES[i],el=$('slist').children[i];
   if(!el.classList.contains('confirm')){[...$('slist').children].forEach(x=>x.classList.remove('confirm'));el.classList.add('confirm');el.querySelector('.sst').textContent='もう一度タップで解放！';sfx('tick');return}
   SAVE.money-=s.price;SAVE.stages.push(s.id);saveData();sfx('gold');bigText(`STAGE ${i+1} 解放!!`,'gold');showStages(stageCh)}
 function startGame(ch,stg,hard,endless){initAudio();newGame(ch,stg,hard,endless);$('chars').classList.add('hidden');$('stages').classList.add('hidden');$('title').classList.add('hidden');$('over').classList.add('hidden');$('hud').classList.remove('hidden');
-  const d=DEFS.find(x=>x.id===G.ch.stand),s0=mkStand(d);s0.lv=1+(G.ch.boost||0)+((SAVE.cm[G.ch.id]||0)>=3?1:0);G.st.push(s0);recalc();G.slotDirty=true;cutin(d,'new');$('ctype').textContent=G.endless?`${G.ch.name} ─ 【ENDLESS】「${G.stage.name}」へ出陣！`:`${G.ch.name} ─ ${G.hard?'【HARD】':''}STAGE ${STAGES.indexOf(G.stage)+1}「${G.stage.name}」へ出陣！`}
+  const d=DEFS.find(x=>x.id===G.ch.stand),s0=mkStand(d);s0.lv=Math.round(1+((G.ch.boost||0)+((SAVE.cm[G.ch.id]||0)>=3?1:0))*12/7);G.st.push(s0);recalc();G.slotDirty=true;cutin(d,'new');$('ctype').textContent=G.endless?`${G.ch.name} ─ 【ENDLESS】「${G.stage.name}」へ出陣！`:`${G.ch.name} ─ ${G.hard?'【HARD】':''}STAGE ${STAGES.indexOf(G.stage)+1}「${G.stage.name}」へ出陣！`}
 $('startBtn').onclick=showChars;$('retryBtn').onclick=()=>startGame(G.ch,G.stage.id,G.hard,G.endless);$('charBack').onclick=()=>{$('chars').classList.add('hidden');showTitle()};
 $('stageBack').onclick=()=>{$('stages').classList.add('hidden');showChars()};
 const btnRow=$('retryBtn').parentNode,chBtn=document.createElement('button');chBtn.className='bigbtn sub';chBtn.textContent='キャラ選択';chBtn.onclick=showChars;btnRow.insertBefore(chBtn,$('toTitleBtn'));
@@ -1639,7 +1642,7 @@ function renderTrain(){$('tmoney').textContent='◎ '+SAVE.money.toLocaleString(
       <button class="tb ${ok?'':'ng'}" data-sd="${d.id}">${!own?'未解放':mx?'MAX':'◎ '+c.toLocaleString()}</button></div>`}).join('');
   else $('tlist').innerHTML=CHARS.map(ch=>{const own=isUnlocked(ch),r=SAVE.cm[ch.id]||0,mx=r>=3,c=CM_COST[r],ok=own&&!mx&&SAVE.money>=c,d=DEFS.find(x=>x.id===ch.stand);
     return`<div class="tc ${mx?'mx':''} ${own?'':'lock'}" style="--c:${d.col}"><img src="${ch.img}" alt="" class="tcp"><div class="ti"><b>${own?ch.name:'？？？'}</b>
-      <small>${own?`${ch.pas}　→ 1段階ごとに ${cmUp(ch)}<br>★3段階目：初期スタンドLv+1で出陣`:'キャラ選択画面で解放すると強化できる'}</small><div class="tp">${pips(r,3)}</div></div>
+      <small>${own?`${ch.pas}　→ 1段階ごとに ${cmUp(ch)}<br>★3段階目：初期スタンドLvアップで出陣`:'キャラ選択画面で解放すると強化できる'}</small><div class="tp">${pips(r,3)}</div></div>
       <button class="tb ${ok?'':'ng'}" data-cm="${ch.id}">${!own?'未解放':mx?'MAX':'◎ '+c.toLocaleString()}</button></div>`}).join('');
   $('tlist').querySelectorAll('.tb').forEach(b=>b.onclick=()=>b.dataset.id?buyTrain(b.dataset.id,b):b.dataset.cm?buyCM(b.dataset.cm,b):buySD(b.dataset.sd,b))}
 function buyTrain(id,b){const t=TRAIN.find(x=>x.id===id),lv=puLv(id);if(lv>=t.max)return;const c=puCost(t);
@@ -1694,8 +1697,8 @@ function showStandDetail(s){const d=s.def,A=AWAKE[d.id];let pips='';for(let k=1;
   $('pdet').style.setProperty('--c',d.col);
   $('pdet').innerHTML=`<div class="dtop"><img src="${d.img}" alt=""><div><div class="dtag">${TYPE_NAME[d.type]}</div><div class="dname">${d.name}</div><div class="djp">「${d.jp}」</div>
       <div class="dlv">${s.aw?'<b class="awb">覚醒</b>':s.lv===MAXLV?'<b>LEVEL MAX</b>':`Lv <b>${s.lv}</b> / ${MAXLV}`}</div><div class="pips">${pips}</div></div></div>
-    <div class="dsec"><h4>現在の性能</h4><p>${d.desc(s.lv)}</p></div>
-    ${s.lv<MAXLV?`<div class="dsec nx"><h4>次のレベル（Lv${s.lv+1}）</h4><p>${d.desc(s.lv+1)}</p></div>`:''}
+    <div class="dsec"><h4>現在の性能</h4><p>${dfmt(d.desc(s.L))}</p></div>
+    ${s.lv<MAXLV?`<div class="dsec nx"><h4>次のレベル（Lv${s.lv+1}）</h4><p>${dfmt(d.desc(effLv(s.lv+1)))}</p></div>`:''}
     <div class="dsec awk ${s.aw?'on':''}"><h4>覚醒能力 ─ ${A.name}</h4><p>${A.desc}</p><div class="ast">${s.aw?'★ 覚醒済み ─ 発動中':s.lv===MAXLV?'矢尻に触れると覚醒する！':'Lv MAX の状態で矢尻に触れると覚醒'}</div></div>
     <button class="bigbtn sub" id="pback">◀ 一覧へ戻る</button>`;
   $('pmain').classList.add('hidden');$('pdet').classList.remove('hidden');$('pause').scrollTop=0;$('pback').onclick=renderPause;sfx('tick')}
@@ -1725,7 +1728,7 @@ function openChoice(start){
       <div class="ctop"><span class="ctag">${TYPE_NAME[d.type]}</span>${c.own?`<span class="clv">Lv${c.own.lv} → <b>${c.next===MAXLV?'MAX':c.next}</b></span>`:'<span class="cnew">NEW!</span>'}</div>
       <div class="cart"><img src="${d.img}" alt=""><div class="csym">${d.sym}</div></div>
       <div class="cname">${d.name}</div><div class="cjp">「${d.jp}」${synChips(d.id,!c.own)}</div>
-      <div class="cdesc">${d.desc(c.next)}</div><div class="pips">${pips}</div><div class="ckey">${i+1}</div></div>`}).join('');
+      <div class="cdesc">${dfmt(d.desc(effLv(c.next)))}</div><div class="pips">${pips}</div><div class="ckey">${i+1}</div></div>`}).join('');
   [...$('cards').children].forEach(el=>{el.onclick=()=>pick(+el.dataset.i);setTimeout(()=>el.classList.add('ready'),380)});
   $('lvl').classList.remove('hidden');$('lvl').scrollTop=0;G.state='levelup';joy.on=false;if(!SET.joyFixed)$('joy').classList.add('hidden');lvBtns();sfx(hasMax?'gold':'lvl');
 }
@@ -1734,8 +1737,8 @@ function pick(i){const c=G.choices[i];if(!c||G.state!=='levelup')return;
   $('lvl').classList.add('hidden');if(!G.choiceStart)G.pend--;G.slotDirty=true;
   if(c.stat){G.bonus[c.stat.id]++;recalc();G.state='play';bigText(`${c.stat.jp} +${G.bonus[c.stat.id]}`,'gold');afterChoice()}
   else if(!c.own){const s=mkStand(c.d);G.st.push(s);recalc();cutin(c.d,'new')}
-  else{const oa=c.d.act?c.d.act(c.own.lv):0;c.own.lv++;recalc();G.state='play';
-    if(c.own.lv===MAXLV)bigText('LEVEL MAX!!','gold');else if(c.d.act&&c.d.act(c.own.lv)!==oa)bigText('ACT'+c.d.act(c.own.lv),'pink');afterChoice()}}
+  else{const oa=c.d.act?c.d.act(c.own.L):0;c.own.lv++;recalc();G.state='play';
+    if(c.own.lv===MAXLV)bigText('LEVEL MAX!!','gold');else if(c.d.act&&c.d.act(c.own.L)!==oa)bigText('ACT'+c.d.act(c.own.L),'pink');afterChoice()}}
 function synChips(id,adding){const ids=G.st.map(s=>s.def.id);return synOf(id).map(y=>{const a=synTier(y,ids).t,b=adding?synTier(y,ids.concat(id)).t:a,hot=b>a;
   return`<span class="stag ${hot?'hot':''} ${b>=0?'on':''}" style="--c:${y.col}">${y.tag}${hot?(a>=0?' UP!':' 発動!'):''}</span>`}).join('')}
 function afterChoice(){if(G.pend>0)openChoice(false)}
@@ -1845,7 +1848,7 @@ function comboCutin(c,A,B){G.state='cutin';const el=$('cutin');el.className='';v
   $('cimg').src=A.def.img;$('cimg2').src=B.def.img;$('ctype').textContent='★ 合体必殺技 ─ 時よ止まれ ★';$('cname').textContent=c.name;$('cjp').textContent=`${A.def.name} × ${B.def.name}`;$('ccry').textContent=c.cry;
   G.cutT=G.cutMax=1.9;sfx('tstop');sfx('gold');G.comboFx=()=>comboHit(c,A,B)}
 // 発動：周囲の敵すべてに2体の合計ダメージ＋短い行動停止（ボスは1秒あたりの上限が効く）
-function comboHit(c,A,B){const lv=(A.lv+B.lv)/2*((A.aw&&B.aw)?1.3:1),d=60+18*lv,r=340;let i=0;
+function comboHit(c,A,B){const lv=(A.L+B.L)/2*((A.aw&&B.aw)?1.3:1),d=60+18*lv,r=340;let i=0;
   for(const e of inR(P.x,P.y,r)){if(e.prop||e.dead)continue;G.src=(i++%2)?B:A;hurt(e,d,{kb:120});if(!e.dead&&e.type!=='boss')e.stun=Math.max(e.stun||0,1.2)}G.src=null;
   fx({t:'ring',x:P.x,y:P.y,r0:20,r1:r,life:.5,col:A.def.col,lw:12});fx({t:'ring',x:P.x,y:P.y,r0:40,r1:r*.8,life:.6,col:B.def.col,lw:8});part(P.x,P.y,A.def.col,26,420,4,.6);part(P.x,P.y,B.def.col,26,420,4,.6);
   bigText(c.name+'!!','gold long');shout(P.x,P.y-80,'ドドドドドドド','#ffd23f',40);G.shake=18;sfx('boom');sfx('tres');A.vis=B.vis=1.2}
@@ -2011,7 +2014,7 @@ function update(rdt){
   if(G.timeStop>0){cntAdd('ts',rdt);G.timeStop-=dt;const el=G.tsMax-G.timeStop;if(Math.floor(el)>G.tsSec&&G.timeStop>0){G.tsSec=Math.floor(el);shout(P.x,P.y-70,G.tsSec+'秒経過','#ffd23f',26)}
     if(G.timeStop<=0){G.timeStop=0;bigText('そして時は動き出す','cyan');sfx('tres')}}
   if(G.erase>0){G.erase-=dt;if(R()<.5)fx({t:'ghost',x:P.x,y:P.y,face:P.face,life:.4});
-    if(G.erase<=0){const s=G.eraseS,r=180+12*s.lv;G.src=s;for(const e of inR(P.x,P.y,r))hurt(e,45+15*s.lv,{kb:150});fx({t:'ring',x:P.x,y:P.y,r0:20,r1:r,life:.45,col:'#ff0030',lw:10});
+    if(G.erase<=0){const s=G.eraseS,r=180+12*s.L;G.src=s;for(const e of inR(P.x,P.y,r))hurt(e,45+15*s.L,{kb:150});fx({t:'ring',x:P.x,y:P.y,r0:20,r1:r,life:.45,col:'#ff0030',lw:10});
       shout(P.x,P.y-60,'ドォォーン!!','#ff2050',44);bigText('この世には「結果」だけが残る!!','red long');G.shake=14;sfx('boom');G.src=null}}
   // player
   let mx=0,my=0;if(keys.KeyW||keys.ArrowUp)my--;if(keys.KeyS||keys.ArrowDown)my++;if(keys.KeyA||keys.ArrowLeft)mx--;if(keys.KeyD||keys.ArrowRight)mx++;
